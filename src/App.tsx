@@ -56,7 +56,7 @@ export default function App() {
   const [language, setLanguage] = useState<Language>('en');
   const [unreadNotifications, setUnreadNotifications] = useState(5);
   const [selectedTutorId, setSelectedTutorId] = useState<number>(1);
-  const [selectedContestId, setSelectedContestId] = useState<number>(1);
+  const [selectedContestId, setSelectedContestId] = useState<string>('');
   const [selectedCourseId, setSelectedCourseId] = useState<number>(1);
   const [selectedQuestionId, setSelectedQuestionId] = useState<number>(1);
   const [selectedConsultationSessionId, setSelectedConsultationSessionId] = useState<number>(1);
@@ -265,13 +265,13 @@ export default function App() {
           return (
             <ContestStartScreen
               language={language}
-              contestId={selectedContestId.toString()}
+              contestId={selectedContestId}
               onBack={() => setCurrentScreen('contests')}
               onStartContest={() => setCurrentScreen('take-contest')}
             />
           );
         case 'take-contest':
-          return <TakeContestScreen language={language} contestId={selectedContestId.toString()} onBack={() => setCurrentScreen('contest-start')} />;
+          return <TakeContestScreen language={language} contestId={selectedContestId} onBack={() => setCurrentScreen('contest-start')} />;
         case 'question-detail':
           return <QuestionDetailScreen language={language} questionId={selectedQuestionId} onBack={() => setCurrentScreen('qa')} />;
         case 'consultation-session-detail':
@@ -348,13 +348,13 @@ export default function App() {
           return (
             <ContestStartScreen
               language={language}
-              contestId={selectedContestId.toString()}
+              contestId={selectedContestId}
               onBack={() => setCurrentScreen('contests')}
               onStartContest={() => setCurrentScreen('take-contest')}
             />
           );
         case 'take-contest':
-          return <TakeContestScreen language={language} contestId={selectedContestId.toString()} onBack={() => setCurrentScreen('contest-start')} />;
+          return <TakeContestScreen language={language} contestId={selectedContestId} onBack={() => setCurrentScreen('contest-start')} />;
         case 'question-detail':
           return <QuestionDetailScreen language={language} questionId={selectedQuestionId} onBack={() => setCurrentScreen('qa')} isTutor />;
         case 'consultation-session-detail':

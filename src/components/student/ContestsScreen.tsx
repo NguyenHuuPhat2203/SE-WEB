@@ -10,7 +10,8 @@ import { contestsAPI, authAPI } from '../../services/api';
 import { formatContest } from '../../services/dataFormatters';
 
 interface Contest {
-  id: number;
+  id: string;
+  _id?: string;
   title: string;
   type: 'academic' | 'non-academic';
   description: string;
@@ -47,8 +48,8 @@ const mockContestDetails: Record<number, ContestDetail> = {
 
 interface ContestsScreenProps {
   language: Language;
-  onViewContest?: (id: number) => void;
-  onStartContest?: (id: number) => void;
+  onViewContest?: (id: string) => void;
+  onStartContest?: (id: string) => void;
 }
 
 export function ContestsScreen({ language, onViewContest, onStartContest }: ContestsScreenProps) {
@@ -69,25 +70,61 @@ export function ContestsScreen({ language, onViewContest, onStartContest }: Cont
     filterNonAcademic: language === 'en' ? 'Non-academic' : 'Phi học thuật'
   };
 
-  const [registered, setRegistered] = useState<number[]>([]);
-  const [bestScores, setBestScores] = useState<{ [key: number]: number }>({});
+  const [registered, setRegistered] = useState<string[]>([]);
+  const [bestScores, setBestScores] = useState<{ [key: string]: number }>({});
   const [searchText, setSearchText] = useState('');
   const [filter, setFilter] = useState<'all' | 'academic' | 'non-academic'>('all');
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadContests();
-    loadUserContestData();
+    loadContestsAndUserData();
   }, []);
 
-  const loadContests = async () => {
+  const loadContestsAndUserData = async () => {
+    const user = authAPI.getCurrentUser();
+    
     try {
       setLoading(true);
       const response = await contestsAPI.getAll();
+      
       if (response.success && response.data) {
+        // Format contests
         const formattedContests = response.data.map(formatContest);
         setContests(formattedContests);
+        
+        // Load user registration and scores in the same loop
+        if (user) {
+          const registeredIds: string[] = [];
+          const scores: { [key: string]: number } = {};
+
+          for (const contest of response.data) {
+            const contestId = contest._id || contest.id;
+            
+            // Check if user is registered
+            const isRegistered = contest.participants?.some((p: any) => {
+              const participantId = p._id || p;
+              return participantId.toString() === user.id.toString();
+            });
+            
+            if (isRegistered) {
+              registeredIds.push(contestId);
+            }
+
+            // Get user's best score
+            try {
+              const resultResponse = await contestsAPI.getUserResult(contestId, user.id);
+              if (resultResponse.success && resultResponse.data) {
+                scores[contestId] = resultResponse.data.score;
+              }
+            } catch (e) {
+              // Score not found, user hasn't taken contest yet
+            }
+          }
+
+          setRegistered(registeredIds);
+          setBestScores(scores);
+        }
       }
     } catch (error) {
       console.error('Error loading contests:', error);
@@ -97,59 +134,7 @@ export function ContestsScreen({ language, onViewContest, onStartContest }: Cont
     }
   };
 
-  const loadUserContestData = async () => {
-    const user = authAPI.getCurrentUser();
-    if (!user) return;
-
-    console.log('Loading user contest data for user:', user.id);
-
-    try {
-      const response = await contestsAPI.getAll();
-      if (response.success && response.data) {
-        console.log('Contests from backend:', response.data);
-        const registeredIds: number[] = [];
-        const scores: { [key: number]: number } = {};
-
-        for (const contest of response.data) {
-          console.log(`Checking contest ${contest.id}:`, {
-            participants: contest.participants,
-            userId: user.id,
-            contestId: contest.id
-          });
-
-          // Check if user is registered - check both string and number formats
-          const isRegistered = contest.participants?.some((p: any) => 
-            p === user.id || p === user.id.toString() || p.toString() === user.id || p.toString() === user.id.toString()
-          );
-          
-          console.log(`Contest ${contest.id} - Is registered:`, isRegistered);
-          
-          if (isRegistered) {
-            registeredIds.push(contest.id);
-          }
-
-          // Get user's best score
-          try {
-            const resultResponse = await contestsAPI.getUserResult(contest._id, user.id);
-            if (resultResponse.success && resultResponse.data) {
-              scores[contest.id] = resultResponse.data.score;
-            }
-          } catch (e) {
-            // Score not found, user hasn't taken contest yet
-          }
-        }
-
-        console.log('Final registered IDs:', registeredIds);
-        console.log('Final scores:', scores);
-        setRegistered(registeredIds);
-        setBestScores(scores);
-      }
-    } catch (error) {
-      console.error('Error loading user contest data:', error);
-    }
-  };
-
-  const toggleRegister = async (id: number) => {
+  const toggleRegister = async (contestId: string) => {
     const user = authAPI.getCurrentUser();
     if (!user) {
       toast.error(language === 'en' ? 'Please login first' : 'Vui lòng đăng nhập');
@@ -157,11 +142,13 @@ export function ContestsScreen({ language, onViewContest, onStartContest }: Cont
     }
 
     try {
-      const response = await contestsAPI.register(id, user.id);
+      const response = await contestsAPI.register(contestId, user.id);
       if (response.success) {
-        setRegistered(prev => prev.includes(id) ? prev : [...prev, id]);
+        // Immediately update UI for instant feedback
+        setRegistered(prev => prev.includes(contestId) ? prev : [...prev, contestId]);
         toast.success(language === 'en' ? 'Registered successfully!' : 'Đăng ký thành công!');
-        loadContests(); // Reload to update participant count
+        // Reload all data in background
+        loadContestsAndUserData();
       }
     } catch (error) {
       console.error('Error registering for contest:', error);

@@ -9,7 +9,7 @@ import type { Language } from '../../App';
 interface ContestDetailScreenProps {
   language: Language;
   onBack: () => void;
-  contestId: number;
+  contestId: string;
   onStartContest?: () => void;
 }
 
