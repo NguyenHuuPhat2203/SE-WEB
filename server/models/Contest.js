@@ -47,7 +47,45 @@ const contestSchema = new mongoose.Schema({
   },
   rules: {
     type: String
-  }
+  },
+  questions: [{
+    question: {
+      type: String,
+      required: true
+    },
+    options: [{
+      type: String,
+      required: true
+    }],
+    correctAnswer: {
+      type: Number,
+      required: true
+    },
+    points: {
+      type: Number,
+      default: 10
+    }
+  }],
+  results: [{
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    score: {
+      type: Number,
+      required: true
+    },
+    answers: [{
+      questionIndex: Number,
+      selectedAnswer: Number,
+      isCorrect: Boolean
+    }],
+    submittedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, {
   timestamps: true
 });

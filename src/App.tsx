@@ -21,6 +21,8 @@ import { ResourceDetailScreen } from './components/student/ResourceDetailScreen'
 import { PerformanceAnalyticsScreen } from './components/student/PerformanceAnalyticsScreen';
 import { TutorDetailScreen } from './components/student/TutorDetailScreen';
 import { ContestDetailScreen } from './components/student/ContestDetailScreen';
+import { ContestStartScreen } from './components/student/ContestStartScreen';
+import { TakeContestScreen } from './components/student/TakeContestScreen';
 import { TutorHome } from './components/tutor/TutorHome';
 import { ConsultationScreen } from './components/tutor/ConsultationScreen';
 import { TutorQAScreen } from './components/tutor/TutorQAScreen';
@@ -209,9 +211,13 @@ export default function App() {
           return (
             <ContestsScreen
               language={language}
-              onNavigate={(screen, contestId) => {
-                if (contestId) setSelectedContestId(contestId);
-                if (screen) setCurrentScreen(screen);
+              onViewContest={(contestId) => {
+                setSelectedContestId(contestId);
+                setCurrentScreen('contest-detail');
+              }}
+              onStartContest={(contestId) => {
+                setSelectedContestId(contestId);
+                setCurrentScreen('contest-start');
               }}
             />
           );
@@ -247,7 +253,25 @@ export default function App() {
         case 'tutor-detail':
           return <TutorDetailScreen language={language} tutorId={selectedTutorId} onBack={() => setCurrentScreen('find-tutor')} />;
         case 'contest-detail':
-          return <ContestDetailScreen language={language} contestId={selectedContestId} onBack={() => setCurrentScreen('contests')} />;
+          return (
+            <ContestDetailScreen 
+              language={language} 
+              contestId={selectedContestId} 
+              onBack={() => setCurrentScreen('contests')}
+              onStartContest={() => setCurrentScreen('contest-start')}
+            />
+          );
+        case 'contest-start':
+          return (
+            <ContestStartScreen
+              language={language}
+              contestId={selectedContestId.toString()}
+              onBack={() => setCurrentScreen('contests')}
+              onStartContest={() => setCurrentScreen('take-contest')}
+            />
+          );
+        case 'take-contest':
+          return <TakeContestScreen language={language} contestId={selectedContestId.toString()} onBack={() => setCurrentScreen('contest-start')} />;
         case 'question-detail':
           return <QuestionDetailScreen language={language} questionId={selectedQuestionId} onBack={() => setCurrentScreen('qa')} />;
         case 'consultation-session-detail':
@@ -312,7 +336,25 @@ export default function App() {
         case 'personalization':
           return <PersonalizationScreen language={language} isTutor />;
         case 'contest-detail':
-          return <ContestDetailScreen language={language} contestId={selectedContestId} onBack={() => setCurrentScreen('contests')} />;
+          return (
+            <ContestDetailScreen 
+              language={language} 
+              contestId={selectedContestId} 
+              onBack={() => setCurrentScreen('contests')}
+              onStartContest={() => setCurrentScreen('contest-start')}
+            />
+          );
+        case 'contest-start':
+          return (
+            <ContestStartScreen
+              language={language}
+              contestId={selectedContestId.toString()}
+              onBack={() => setCurrentScreen('contests')}
+              onStartContest={() => setCurrentScreen('take-contest')}
+            />
+          );
+        case 'take-contest':
+          return <TakeContestScreen language={language} contestId={selectedContestId.toString()} onBack={() => setCurrentScreen('contest-start')} />;
         case 'question-detail':
           return <QuestionDetailScreen language={language} questionId={selectedQuestionId} onBack={() => setCurrentScreen('qa')} isTutor />;
         case 'consultation-session-detail':

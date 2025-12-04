@@ -127,11 +127,50 @@ export const contestsAPI = {
     return apiCall(`/contests/${id}`);
   },
   
+  create: async (data: {
+    title: string;
+    type: 'academic' | 'non-academic';
+    description: string;
+    startDate: string;
+    endDate: string;
+    maxParticipants?: number;
+    prize?: string;
+    rules?: string;
+    userId: string;
+  }) => {
+    return apiCall('/contests', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  
   register: async (contestId: string, userId: string) => {
     return apiCall(`/contests/${contestId}/register`, {
       method: 'POST',
       body: JSON.stringify({ userId }),
     });
+  },
+  
+  addQuestions: async (contestId: string, questions: any[]) => {
+    return apiCall(`/contests/${contestId}/questions`, {
+      method: 'POST',
+      body: JSON.stringify({ questions }),
+    });
+  },
+  
+  submitAnswers: async (contestId: string, userId: string, answers: any[]) => {
+    return apiCall(`/contests/${contestId}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ userId, answers }),
+    });
+  },
+  
+  getResults: async (contestId: string) => {
+    return apiCall(`/contests/${contestId}/results`);
+  },
+  
+  getUserResult: async (contestId: string, userId: string) => {
+    return apiCall(`/contests/${contestId}/my-result?userId=${userId}`);
   },
 };
 

@@ -10,6 +10,7 @@ interface ContestDetailScreenProps {
   language: Language;
   onBack: () => void;
   contestId: number;
+  onStartContest?: () => void;
 }
 
 const mockContestDetails = {
@@ -145,7 +146,7 @@ const mockContestDetails = {
   },
 };
 
-export function ContestDetailScreen({ language, onBack, contestId }: ContestDetailScreenProps) {
+export function ContestDetailScreen({ language, onBack, contestId, onStartContest }: ContestDetailScreenProps) {
   const t = {
     back: language === 'en' ? 'Back' : 'Quay lại',
     overview: language === 'en' ? 'Overview' : 'Tổng quan',
@@ -163,6 +164,7 @@ export function ContestDetailScreen({ language, onBack, contestId }: ContestDeta
     downloadBrochure: language === 'en' ? 'Download Brochure' : 'Tải tài liệu',
     open: language === 'en' ? 'Open' : 'Đang mở',
     description: language === 'en' ? 'Description' : 'Mô tả',
+    startContest: language === 'en' ? 'Start Contest' : 'Bắt đầu làm bài',
   };
 
   const contest = mockContestDetails[contestId as keyof typeof mockContestDetails];
@@ -227,8 +229,9 @@ export function ContestDetailScreen({ language, onBack, contestId }: ContestDeta
               <Button
                 className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
                 disabled={contest.status === 'closed'}
+                onClick={onStartContest}
               >
-                {contest.status === 'open' ? t.register : t.closed}
+                {contest.status === 'open' ? t.startContest : t.closed}
               </Button>
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />

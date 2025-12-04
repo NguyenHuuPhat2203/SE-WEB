@@ -45,13 +45,22 @@ const mockContestDetails: Record<number, ContestDetail> = {
   3: { id: 3, title: 'Data Science Competition', type: 'academic', description: 'ML and data analysis challenge', fullDescription: 'Full details of Data Science Competition...', period: 'Nov 30 - Dec 25', startDate: 'Nov 30, 2025 - 10:00 AM', endDate: 'Dec 25, 2025 - 11:59 PM', status: 'open', participants: 67, maxParticipants: 100, organizer: 'AI Lab', location: 'Online', prizes: [{ place: '1st Place', prize: '8,000,000 VND + AWS Credits' }], rules: ['Individual or team max 3 members'], timeline: [{ date: 'Nov 30 - Dec 14', event: 'Registration' }], requirements: ['Python skills'], contacts: [{ name: 'Dr. Le Thanh Sach', role: 'Competition Lead', email: 'sach.lethanh@hcmut.edu.vn' }] }
 };
 
-export function ContestsScreen({ language }: { language: Language }) {
+interface ContestsScreenProps {
+  language: Language;
+  onViewContest?: (id: number) => void;
+  onStartContest?: (id: number) => void;
+}
+
+export function ContestsScreen({ language, onViewContest, onStartContest }: ContestsScreenProps) {
   const t = {
     contests: language === 'en' ? 'Contests' : 'Cuộc thi',
     open: language === 'en' ? 'Open' : 'Đang mở',
     closed: language === 'en' ? 'Closed' : 'Đã đóng',
     register: language === 'en' ? 'Register' : 'Đăng ký',
     registered: language === 'en' ? 'Registered' : 'Đã đăng ký',
+    startContest: language === 'en' ? 'Start Contest' : 'Bắt đầu làm bài',
+    viewDetails: language === 'en' ? 'View Details' : 'Xem chi tiết',
+    bestScore: language === 'en' ? 'Your Best Score' : 'Điểm cao nhất của bạn',
     participants: language === 'en' ? 'participants' : 'người tham gia',
     back: language === 'en' ? 'Back' : 'Quay lại',
     searchPlaceholder: language === 'en' ? 'Search contests...' : 'Tìm kiếm cuộc thi...',
@@ -61,7 +70,7 @@ export function ContestsScreen({ language }: { language: Language }) {
   };
 
   const [registered, setRegistered] = useState<number[]>([]);
-  const [selectedContestId, setSelectedContestId] = useState<number | null>(null);
+  const [bestScores, setBestScores] = useState<{ [key: number]: number }>({});
   const [searchText, setSearchText] = useState('');
   const [filter, setFilter] = useState<'all' | 'academic' | 'non-academic'>('all');
   const [contests, setContests] = useState<Contest[]>([]);
@@ -69,6 +78,7 @@ export function ContestsScreen({ language }: { language: Language }) {
 
   useEffect(() => {
     loadContests();
+    loadUserContestData();
   }, []);
 
   const loadContests = async () => {
@@ -84,6 +94,58 @@ export function ContestsScreen({ language }: { language: Language }) {
       toast.error(language === 'en' ? 'Failed to load contests' : 'Không thể tải danh sách cuộc thi');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUserContestData = async () => {
+    const user = authAPI.getCurrentUser();
+    if (!user) return;
+
+    console.log('Loading user contest data for user:', user.id);
+
+    try {
+      const response = await contestsAPI.getAll();
+      if (response.success && response.data) {
+        console.log('Contests from backend:', response.data);
+        const registeredIds: number[] = [];
+        const scores: { [key: number]: number } = {};
+
+        for (const contest of response.data) {
+          console.log(`Checking contest ${contest.id}:`, {
+            participants: contest.participants,
+            userId: user.id,
+            contestId: contest.id
+          });
+
+          // Check if user is registered - check both string and number formats
+          const isRegistered = contest.participants?.some((p: any) => 
+            p === user.id || p === user.id.toString() || p.toString() === user.id || p.toString() === user.id.toString()
+          );
+          
+          console.log(`Contest ${contest.id} - Is registered:`, isRegistered);
+          
+          if (isRegistered) {
+            registeredIds.push(contest.id);
+          }
+
+          // Get user's best score
+          try {
+            const resultResponse = await contestsAPI.getUserResult(contest._id, user.id);
+            if (resultResponse.success && resultResponse.data) {
+              scores[contest.id] = resultResponse.data.score;
+            }
+          } catch (e) {
+            // Score not found, user hasn't taken contest yet
+          }
+        }
+
+        console.log('Final registered IDs:', registeredIds);
+        console.log('Final scores:', scores);
+        setRegistered(registeredIds);
+        setBestScores(scores);
+      }
+    } catch (error) {
+      console.error('Error loading user contest data:', error);
     }
   };
 
@@ -106,83 +168,6 @@ export function ContestsScreen({ language }: { language: Language }) {
       toast.error(language === 'en' ? 'Failed to register' : 'Không thể đăng ký');
     }
   };
-
-  if (selectedContestId !== null) {
-    const contest = contests.find(c => c.id === selectedContestId);
-    if (!contest) return <p>Contest not found</p>;
-
-    return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <Button variant="ghost" onClick={() => setSelectedContestId(null)} className="mb-4">
-          <ChevronLeft className="h-4 w-4 mr-2" /> {t.back}
-        </Button>
-
-        <Card className="mb-6">
-          <CardContent>
-            <h1 className="text-3xl mb-2">{contest.title}</h1>
-            <p className="text-gray-700">{contest.fullDescription}</p>
-            <div className="flex gap-2 mt-4">
-              <Button
-                className={`flex-1 ${registered.includes(contest.id) ? 'bg-green-600 text-white' : ''}`}
-                disabled={contest.status === 'closed' || registered.includes(contest.id)}
-                onClick={() => toggleRegister(contest.id)}
-              >
-                {registered.includes(contest.id) ? t.registered : t.register}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="rules">Rules</TabsTrigger>
-            <TabsTrigger value="prizes">Prizes</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview">
-            <Card className="mb-4">
-              <CardHeader>
-                <CardTitle>Period</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>{contest.period}</p>
-                <p>{contest.participants}/{contest.maxParticipants} {t.participants}</p>
-                <p>Organizer: {contest.organizer}</p>
-                <p>Location: {contest.location}</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="rules">
-            <Card>
-              <CardHeader>
-                <CardTitle>Rules</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-disc ml-5 space-y-1">
-                  {contest.rules.map((r, idx) => <li key={idx}>{r}</li>)}
-                </ul>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="prizes">
-            <Card>
-              <CardHeader>
-                <CardTitle>Prizes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-disc ml-5 space-y-1">
-                  {contest.prizes.map((p, idx) => <li key={idx}>{p.place}: {p.prize}</li>)}
-                </ul>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
-  }
 
   // Filter and search contests
   const filteredContests = contests.filter(c => {
@@ -233,7 +218,7 @@ export function ContestsScreen({ language }: { language: Language }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredContests.map(c => (
-          <Card key={c.id} className="cursor-pointer hover:shadow-md" onClick={() => setSelectedContestId(c.id)}>
+          <Card key={c.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <Trophy className={`h-8 w-8 ${c.type === 'academic' ? 'text-purple-600' : 'text-indigo-600'}`} />
@@ -245,17 +230,36 @@ export function ContestsScreen({ language }: { language: Language }) {
               <CardDescription>{c.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-between text-sm text-gray-600">
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
                 <span>{c.period}</span>
                 <span>{c.participants} {t.participants}</span>
               </div>
-              <Button
-                className={`mt-2 w-full ${registered.includes(c.id) ? 'bg-green-600 text-white' : ''}`}
-                disabled={c.status === 'closed' || registered.includes(c.id)}
-                onClick={e => { e.stopPropagation(); toggleRegister(c.id); }}
-              >
-                {registered.includes(c.id) ? t.registered : t.register}
-              </Button>
+              
+              {bestScores[c.id] !== undefined && (
+                <div className="mb-2 p-2 bg-purple-50 rounded border border-purple-200">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Trophy className="h-4 w-4 text-purple-600" />
+                    <span className="text-purple-900 font-medium">{t.bestScore}: {bestScores[c.id]}</span>
+                  </div>
+                </div>
+              )}
+              
+              {registered.includes(c.id) ? (
+                <Button
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                  onClick={e => { e.stopPropagation(); onStartContest?.(c.id); }}
+                >
+                  {t.startContest}
+                </Button>
+              ) : (
+                <Button
+                  className="w-full"
+                  disabled={c.status === 'closed'}
+                  onClick={e => { e.stopPropagation(); toggleRegister(c.id); }}
+                >
+                  {t.register}
+                </Button>
+              )}
             </CardContent>
           </Card>
         ))}

@@ -91,6 +91,19 @@ class ContestRepository {
       throw error;
     }
   }
+
+  async updateQuestions(contestId, questions) {
+    try {
+      const contest = await Contest.findById(contestId);
+      if (!contest) return null;
+      contest.questions = questions;
+      await contest.save();
+      return contest;
+    } catch (error) {
+      console.error('Error updating questions:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new ContestRepository();

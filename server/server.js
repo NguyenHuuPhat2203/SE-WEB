@@ -73,8 +73,13 @@ app.get('/api/users', async (req, res) => {
 
 // Contests
 app.get('/api/contests', contestController.list);
+app.post('/api/contests', contestController.create);
 app.get('/api/contests/:id', contestController.detail);
 app.post('/api/contests/:id/register', contestController.register);
+app.post('/api/contests/:id/questions', contestController.addQuestions);
+app.post('/api/contests/:id/submit', contestController.submitAnswers);
+app.get('/api/contests/:id/results', contestController.getResults);
+app.get('/api/contests/:id/my-result', contestController.getUserResult);
 
 // Sessions
 app.get('/api/sessions', sessionController.list);           // ?type=my|upcoming|ongoing
