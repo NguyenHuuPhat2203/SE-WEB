@@ -15,6 +15,7 @@ import {
 } from '../ui/alert-dialog';
 import { AlertCircle, GraduationCap } from 'lucide-react';
 import type { Language, UserRole } from '../../App';
+import { authAPI } from '../../services/api';
 
 interface LoginScreenProps {
   onLogin: (bknetId: string, role: UserRole) => void;
@@ -56,24 +57,20 @@ export function LoginScreen({ onLogin, onNavigate, language }: LoginScreenProps)
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bknetId, password }),
-      });
+      const data = await authAPI.login(bknetId, password);
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
+      if (!data.success) {
         setError(data.message || (language === 'en' ? 'Login failed' : 'Đăng nhập thất bại'));
         setShowErrorDialog(true);
         return;
       }
 
-      // dùng role từ server
+      // Login successful - token and user are saved in authAPI.login()
       onLogin(data.user.bknetId, data.user.role);
-    } catch (err) {
-      setError(language === 'en' ? 'Cannot connect to server' : 'Không thể kết nối server');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || (language === 'en' ? 'Cannot connect to server' : 'Không thể kết nối server'));
+      setShowErrorDialog(true);
     }
   };
 

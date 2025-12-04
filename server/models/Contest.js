@@ -1,12 +1,55 @@
-class Contest {
-  constructor({ id, title, type, description, period, status, participants }) {
-    this.id = id;
-    this.title = title;
-    this.type = type; // 'academic' | 'non-academic'
-    this.description = description;
-    this.period = period;
-    this.status = status; // 'open' | 'closed'
-    this.participants = participants;
+// models/Contest.js
+const mongoose = require('mongoose');
+
+const contestSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  type: {
+    type: String,
+    enum: ['academic', 'non-academic'],
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  period: {
+    start: {
+      type: Date,
+      required: true
+    },
+    end: {
+      type: Date,
+      required: true
+    }
+  },
+  status: {
+    type: String,
+    enum: ['open', 'closed'],
+    default: 'open'
+  },
+  participants: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  organizer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  maxParticipants: {
+    type: Number
+  },
+  prize: {
+    type: String
+  },
+  rules: {
+    type: String
   }
-}
-module.exports = Contest;
+}, {
+  timestamps: true
+});
+
+module.exports = mongoose.model('Contest', contestSchema);

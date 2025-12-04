@@ -1,56 +1,95 @@
+// repositories/contestRepository.js
 const Contest = require('../models/Contest');
 
 class ContestRepository {
-  constructor() {
-    this.contests = [
-      new Contest({
-        id: 1,
-        title: 'Algorithm Challenge 2025',
-        type: 'academic',
-        description: 'Competitive programming contest',
-        period: 'Dec 20 - Dec 25',
-        status: 'open',
-        participants: 45,
-      }),
-      new Contest({
-        id: 2,
-        title: 'Hackathon: Smart City Solutions',
-        type: 'non-academic',
-        description: 'Build innovative solutions for smart cities',
-        period: 'Jan 10 - Jan 15',
-        status: 'open',
-        participants: 32,
-      }),
-      new Contest({
-        id: 3,
-        title: 'Data Science Competition',
-        type: 'academic',
-        description: 'Machine learning and data analysis',
-        period: 'Nov 15 - Nov 30',
-        status: 'closed',
-        participants: 67,
-      }),
-    ];
+  async findAll() {
+    try {
+      return await Contest.find()
+        .populate('organizer', 'firstName lastName bknetId')
+        .populate('participants', 'firstName lastName bknetId')
+        .sort({ createdAt: -1 });
+    } catch (error) {
+      console.error('Error finding all contests:', error);
+      throw error;
+    }
   }
 
-  findAll() {
-    return this.contests;
+  async findOpen() {
+    try {
+      return await Contest.find({ status: 'open' })
+        .populate('organizer', 'firstName lastName bknetId')
+        .sort({ 'period.start': 1 });
+    } catch (error) {
+      console.error('Error finding open contests:', error);
+      throw error;
+    }
   }
 
-  findOpen() {
-    return this.contests.filter((c) => c.status === 'open');
+  async findById(id) {
+    try {
+      return await Contest.findById(id)
+        .populate('organizer', 'firstName lastName bknetId')
+        .populate('participants', 'firstName lastName bknetId');
+    } catch (error) {
+      console.error('Error finding contest by id:', error);
+      throw error;
+    }
   }
 
-  findById(id) {
-    return this.contests.find((c) => c.id === Number(id)) || null;
+  async create(contestData) {
+    try {
+      const contest = new Contest(contestData);
+      await contest.save();
+      return contest;
+    } catch (error) {
+      console.error('Error creating contest:', error);
+      throw error;
+    }
   }
 
-  register(id) {
-    const contest = this.findById(id);
-    if (!contest) return null;
-    if (contest.status !== 'open') return contest;
-    contest.participants += 1;
-    return contest;
+  async register(contestId, userId) {
+    try {
+      const contest = await Contest.findById(contestId);
+      if (!contest) return null;
+      if (contest.status !== 'open') return contest;
+      
+      // Check if user already registered
+      if (contest.participants.includes(userId)) {
+        return contest;
+      }
+      
+      // Check if max participants reached
+      if (contest.maxParticipants && contest.participants.length >= contest.maxParticipants) {
+        throw new Error('Contest is full');
+      }
+      
+      contest.participants.push(userId);
+      await contest.save();
+      return await this.findById(contestId);
+    } catch (error) {
+      console.error('Error registering for contest:', error);
+      throw error;
+    }
+  }
+
+  async update(id, updateData) {
+    try {
+      return await Contest.findByIdAndUpdate(id, updateData, { new: true })
+        .populate('organizer', 'firstName lastName bknetId')
+        .populate('participants', 'firstName lastName bknetId');
+    } catch (error) {
+      console.error('Error updating contest:', error);
+      throw error;
+    }
+  }
+
+  async delete(id) {
+    try {
+      return await Contest.findByIdAndDelete(id);
+    } catch (error) {
+      console.error('Error deleting contest:', error);
+      throw error;
+    }
   }
 }
 

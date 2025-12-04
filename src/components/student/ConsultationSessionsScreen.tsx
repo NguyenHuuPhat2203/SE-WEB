@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, Plus, Search, Star, Users, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { toast } from 'sonner';
 import type { Language } from '../../App';
+import { sessionsAPI, authAPI } from '../../services/api';
+import { formatSession } from '../../services/dataFormatters';
 
 interface ConsultationSessionsScreenProps {
   language: Language;
@@ -32,6 +34,28 @@ interface Session {
 export function ConsultationSessionsScreen({ language, onNavigate }: ConsultationSessionsScreenProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [joinedSessions, setJoinedSessions] = useState<number[]>([]);
+  const [allSessions, setAllSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadSessions();
+  }, []);
+
+  const loadSessions = async () => {
+    try {
+      setLoading(true);
+      const response = await sessionsAPI.getAll();
+      if (response.success && response.data) {
+        const formattedSessions = response.data.map(formatSession);
+        setAllSessions(formattedSessions);
+      }
+    } catch (error) {
+      console.error('Error loading sessions:', error);
+      toast.error(language === 'en' ? 'Failed to load sessions' : 'Không thể tải danh sách buổi tư vấn');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const t = {
     title: language === 'en' ? 'Consultation Sessions' : 'Các buổi tư vấn',
@@ -49,7 +73,11 @@ export function ConsultationSessionsScreen({ language, onNavigate }: Consultatio
     offline: language === 'en' ? 'Offline' : 'Tại chỗ',
   };
 
-  const [mySessions, setMySessions] = useState<Session[]>([
+  // Separate sessions into my sessions and upcoming based on user participation
+  const mySessions = allSessions.filter(s => joinedSessions.includes(s.id));
+  const upcomingSessions = allSessions.filter(s => !joinedSessions.includes(s.id));
+
+  const [oldMySessions] = useState<Session[]>([
     {
       id: 1,
       title: language === 'en' ? 'Assembly programming guide' : 'Hướng dẫn lập trình Assembly',
@@ -78,46 +106,6 @@ export function ConsultationSessionsScreen({ language, onNavigate }: Consultatio
     },
   ]);
 
-  const [upcomingSessions, setUpcomingSessions] = useState<Session[]>([
-    {
-      id: 3,
-      title: language === 'en' ? 'How to build a semantic checker' : 'Cách xây dựng semantic checker',
-      subject: 'PPL',
-      tutor: 'Nguyen Hua Phung',
-      date: language === 'en' ? 'Friday, 2:00 PM' : 'Thứ 6, 2:00 CH',
-      participants: 8,
-      maxParticipants: 15,
-      rating: 4.9,
-      description: 'Build a semantic checker for a programming language',
-      type: 'offline',
-    },
-    {
-      id: 4,
-      title: language === 'en' ? 'Operating Systems Concepts' : 'Khái niệm Hệ điều hành',
-      subject: 'Operating Systems',
-      tutor: 'Le Thanh Van',
-      date: language === 'en' ? 'Saturday, 10:00 AM' : 'Thứ 7, 10:00 SA',
-      participants: 15,
-      maxParticipants: 30,
-      rating: 4.7,
-      description: 'Understanding process management and scheduling',
-      type: 'online',
-      onlineLink: 'https://zoom.us/j/os-concepts',
-    },
-    {
-      id: 5,
-      title: language === 'en' ? 'Design Pattern Practices' : 'Thực hành Design Pattern',
-      subject: 'Database Systems',
-      tutor: 'Mai Duc Trung',
-      date: language === 'en' ? 'Monday, 4:00 PM' : 'Thứ 2, 4:00 CH',
-      participants: 10,
-      maxParticipants: 20,
-      rating: 4.8,
-      description: 'Learn concepts of design pattern',
-      type: 'offline',
-    },
-  ]);
-
   const filteredMySessions = useMemo(() => {
     if (!searchQuery.trim()) return mySessions;
     const query = searchQuery.toLowerCase();
@@ -143,20 +131,38 @@ export function ConsultationSessionsScreen({ language, onNavigate }: Consultatio
     );
   }, [upcomingSessions, searchQuery, joinedSessions]);
 
-  const handleJoinSession = (sessionId: number) => {
-    const sessionToMove = upcomingSessions.find((s) => s.id === sessionId);
-    if (!sessionToMove) return;
+  const handleJoinSession = async (sessionId: number) => {
+    const user = authAPI.getCurrentUser();
+    if (!user) {
+      toast.error(language === 'en' ? 'Please login first' : 'Vui lòng đăng nhập');
+      return;
+    }
 
-    setJoinedSessions((prev) => [...prev, sessionId]);
-    setMySessions((prev) => [...prev, { ...sessionToMove, status: 'upcoming' }]);
-    setUpcomingSessions((prev) => prev.filter((s) => s.id !== sessionId));
-
-    toast.success(`${sessionToMove.title} ${t.joined}`);
+    try {
+      const response = await sessionsAPI.join(sessionId, user.id);
+      if (response.success) {
+        setJoinedSessions((prev) => [...prev, sessionId]);
+        toast.success(language === 'en' ? 'Joined session successfully!' : 'Tham gia buổi tư vấn thành công!');
+        loadSessions(); // Reload to update participant count
+      }
+    } catch (error) {
+      console.error('Error joining session:', error);
+      toast.error(language === 'en' ? 'Failed to join session' : 'Không thể tham gia buổi tư vấn');
+    }
   };
 
   const handleJoinLiveSession = (link: string) => {
     window.open(link, '_blank');
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <h1 className="text-gray-900 mb-2">{t.title}</h1>
+        <p className="text-gray-500">Loading sessions...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

@@ -1,26 +1,26 @@
 const tutorRepository = require('../repositories/tutorRepository');
 
 class TutorService {
-  list() {
-    return tutorRepository.findAll();
+  async list() {
+    return await tutorRepository.findAll();
   }
 
-  getById(id) {
-    const t = tutorRepository.findById(id);
+  async getById(id) {
+    const t = await tutorRepository.findById(id);
     if (!t) throw new Error('NOT_FOUND');
     return t;
   }
 
-  suggestions(/*bknetId*/) {
-    return tutorRepository.findSuggestions();
+  async suggestions(userId) {
+    return await tutorRepository.findSuggestions(userId);
   }
 
-  departments() {
-    return tutorRepository.getDepartments();
+  async departments() {
+    return await tutorRepository.getDepartments();
   }
 
-  specializations() {
-    return tutorRepository.getSpecializations();
+  async specializations() {
+    return await tutorRepository.getSpecializations();
   }
 }
 

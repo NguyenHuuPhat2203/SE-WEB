@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus, MessageSquare, Send, User, ChevronLeft, ThumbsUp
 } from 'lucide-react';
@@ -16,6 +16,8 @@ import {
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { toast } from 'sonner';
 import type { Language } from '../../App';
+import { questionsAPI, authAPI } from '../../services/api';
+import { formatQuestion } from '../../services/dataFormatters';
 
 interface Answer {
   id: number;
@@ -38,34 +40,81 @@ interface Question {
 }
 
 export function QAScreen({ language }: { language: Language }) {
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: 1,
-      title: 'How to implement Binary Search Tree?',
-      content: 'I am struggling with the implementation of BST insert method.',
-      author: 'Nguyen Huu Phat',
-      time: '2 hours ago',
-      topic: 'Data Structures',
-      tags: ['BST', 'Trees'],
-      answers: [
-        {
-          id: 1,
-          author: 'Tran Ngoc Bao Duy',
-          content: 'Use recursion carefully. Base case first, then left/right subtree.',
-          time: '1 hour ago',
-          likes: 5,
-          isTutor: true
-        }
-      ]
-    }
-  ]);
-
-  const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [newQuestionDialogOpen, setNewQuestionDialogOpen] = useState(false);
   const [newQuestionTitle, setNewQuestionTitle] = useState('');
   const [newQuestionTopic, setNewQuestionTopic] = useState('');
   const [newQuestionContent, setNewQuestionContent] = useState('');
   const [newAnswerContent, setNewAnswerContent] = useState('');
+
+  // Load questions from backend
+  useEffect(() => {
+    loadQuestions();
+  }, []);
+
+  const loadQuestions = async () => {
+    try {
+      setLoading(true);
+      const response = await questionsAPI.getAll();
+      if (response.success) {
+        const formatted = response.data.map((q: any) => ({
+          ...formatQuestion(q),
+          answers: (q.answers || []).map((ans: any) => ({
+            id: ans._id,
+            author: `${ans.author?.firstName || ''} ${ans.author?.lastName || ''}`.trim() || 'Anonymous',
+            content: ans.content,
+            time: new Date(ans.createdAt).toLocaleString(),
+            likes: ans.upvotes || 0,
+            isTutor: ans.author?.role === 'tutor'
+          }))
+        }));
+        setQuestions(formatted);
+      }
+    } catch (error) {
+      console.error('Error loading questions:', error);
+      toast.error(language === 'en' ? 'Failed to load questions' : 'Không thể tải câu hỏi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePostQuestion = async () => {
+    if (!newQuestionTitle || !newQuestionTopic || !newQuestionContent) {
+      toast.error(language === 'en' ? 'Please fill all fields' : 'Vui lòng điền đầy đủ thông tin');
+      return;
+    }
+
+    const user = authAPI.getCurrentUser();
+    if (!user) {
+      toast.error(language === 'en' ? 'Please login first' : 'Vui lòng đăng nhập');
+      return;
+    }
+
+    try {
+      const response = await questionsAPI.create({
+        title: newQuestionTitle,
+        content: newQuestionContent,
+        topic: newQuestionTopic,
+        tags: [],
+        userId: user.id
+      });
+
+      if (response.success) {
+        setNewQuestionTitle('');
+        setNewQuestionTopic('');
+        setNewQuestionContent('');
+        setNewQuestionDialogOpen(false);
+        toast.success(t.successQuestion);
+        // Reload questions
+        loadQuestions();
+      }
+    } catch (error) {
+      console.error('Error posting question:', error);
+      toast.error(language === 'en' ? 'Failed to post question' : 'Không thể đăng câu hỏi');
+    }
+  };
 
   const t = {
     title: language === 'en' ? 'Ask a Question' : 'Đặt câu hỏi',
@@ -84,29 +133,6 @@ export function QAScreen({ language }: { language: Language }) {
     postAnswer: language === 'en' ? 'Post answer' : 'Đăng câu trả lời',
     successAnswer: language === 'en' ? 'Answer posted successfully!' : 'Đã đăng câu trả lời!',
     noAnswers: language === 'en' ? 'No answers yet. Be the first to answer!' : 'Chưa có câu trả lời. Hãy là người đầu tiên trả lời!'
-  };
-
-  const handlePostQuestion = () => {
-    if (!newQuestionTitle || !newQuestionTopic || !newQuestionContent) {
-      toast.error(language === 'en' ? 'Please fill all fields' : 'Vui lòng điền đầy đủ thông tin');
-      return;
-    }
-    const newQ: Question = {
-      id: questions.length + 1,
-      title: newQuestionTitle,
-      topic: newQuestionTopic,
-      content: newQuestionContent,
-      author: 'You',
-      time: 'Just now',
-      tags: [],
-      answers: []
-    };
-    setQuestions([newQ, ...questions]);
-    setNewQuestionTitle('');
-    setNewQuestionTopic('');
-    setNewQuestionContent('');
-    setNewQuestionDialogOpen(false);
-    toast.success(t.successQuestion);
   };
 
   const handlePostAnswer = () => {
@@ -228,6 +254,9 @@ export function QAScreen({ language }: { language: Language }) {
                     <SelectItem value="Data Structures">Data Structures</SelectItem>
                     <SelectItem value="Algorithms">Algorithms</SelectItem>
                     <SelectItem value="Database">Database</SelectItem>
+                    <SelectItem value="Programming">Programming</SelectItem>
+                    <SelectItem value="Operating Systems">Operating Systems</SelectItem>
+                    <SelectItem value="Networks">Networks</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -248,9 +277,22 @@ export function QAScreen({ language }: { language: Language }) {
         </Dialog>
       </div>
 
-      <div className="space-y-3">
-        {questions.map((q) => (
-          <Card key={q.id} className="cursor-pointer hover:shadow-md transition-shadow"
+      {loading ? (
+        <Card>
+          <CardContent className="p-12 text-center text-gray-500">
+            {language === 'en' ? 'Loading questions...' : 'Đang tải câu hỏi...'}
+          </CardContent>
+        </Card>
+      ) : questions.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center text-gray-500">
+            {language === 'en' ? 'No questions yet. Be the first to ask!' : 'Chưa có câu hỏi nào. Hãy là người đầu tiên đặt câu hỏi!'}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {questions.map((q) => (
+            <Card key={q.id} className="cursor-pointer hover:shadow-md transition-shadow"
             onClick={() => setSelectedQuestionId(q.id)}>
             <CardContent className="p-4 flex justify-between items-start">
               <div className="flex-1">
@@ -263,7 +305,7 @@ export function QAScreen({ language }: { language: Language }) {
               </div>
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-1 text-sm text-gray-600">
-                  <MessageSquare className="h-4 w-4" /> <span>{q.answers.length} {t.answers}</span>
+                  <MessageSquare className="h-4 w-4" /> <span>{q.answers.length || 0} {t.answers}</span>
                 </div>
                 <Badge variant={q.answers.length > 0 ? 'default' : 'secondary'}>
                   {q.answers.length > 0 ? t.answered : t.unanswered}
@@ -273,6 +315,7 @@ export function QAScreen({ language }: { language: Language }) {
           </Card>
         ))}
       </div>
+        )}
     </div>
   );
 }

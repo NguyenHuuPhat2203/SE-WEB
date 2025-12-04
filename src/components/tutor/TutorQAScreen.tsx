@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus, MessageSquare, Send, User, ChevronLeft, ThumbsUp
 } from 'lucide-react';
@@ -16,6 +16,8 @@ import {
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { toast } from 'sonner';
 import type { Language } from '../../App';
+import { questionsAPI, authAPI } from '../../services/api';
+import { formatQuestion } from '../../services/dataFormatters';
 
 interface Answer {
   id: number;
@@ -38,34 +40,45 @@ interface Question {
 }
 
 export function TutorQAScreen({ language }: { language: Language }) {
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: 1,
-      title: 'How to implement Binary Search Tree?',
-      content: 'I am struggling with the implementation of BST insert method.',
-      author: 'Nguyen Huu Phat',
-      time: '2 hours ago',
-      topic: 'Data Structures',
-      tags: ['BST', 'Trees'],
-      answers: [
-        {
-          id: 1,
-          author: 'Tran Ngoc Bao Duy',
-          content: 'Use recursion carefully. Base case first, then left/right subtree.',
-          time: '1 hour ago',
-          likes: 5,
-          isTutor: true
-        }
-      ]
-    }
-  ]);
-
-  const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [newQuestionDialogOpen, setNewQuestionDialogOpen] = useState(false);
   const [newQuestionTitle, setNewQuestionTitle] = useState('');
   const [newQuestionTopic, setNewQuestionTopic] = useState('');
   const [newQuestionContent, setNewQuestionContent] = useState('');
   const [newAnswerContent, setNewAnswerContent] = useState('');
+
+  // Load questions from backend
+  useEffect(() => {
+    loadQuestions();
+  }, []);
+
+  const loadQuestions = async () => {
+    try {
+      setLoading(true);
+      const response = await questionsAPI.getAll();
+      if (response.success) {
+        const formatted = response.data.map((q: any) => ({
+          ...formatQuestion(q),
+          answers: (q.answers || []).map((ans: any) => ({
+            id: ans._id,
+            author: `${ans.author?.firstName || ''} ${ans.author?.lastName || ''}`.trim() || 'Anonymous',
+            content: ans.content,
+            time: new Date(ans.createdAt).toLocaleString(),
+            likes: ans.upvotes || 0,
+            isTutor: ans.author?.role === 'tutor'
+          }))
+        }));
+        setQuestions(formatted);
+      }
+    } catch (error) {
+      console.error('Error loading questions:', error);
+      toast.error(language === 'en' ? 'Failed to load questions' : 'Không thể tải câu hỏi');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const t = {
     title: language === 'en' ? 'Ask a Question' : 'Đặt câu hỏi',
@@ -86,49 +99,68 @@ export function TutorQAScreen({ language }: { language: Language }) {
     noAnswers: language === 'en' ? 'No answers yet. Be the first to answer!' : 'Chưa có câu trả lời. Hãy là người đầu tiên trả lời!'
   };
 
-  const handlePostQuestion = () => {
+  const handlePostQuestion = async () => {
     if (!newQuestionTitle || !newQuestionTopic || !newQuestionContent) {
       toast.error(language === 'en' ? 'Please fill all fields' : 'Vui lòng điền đầy đủ thông tin');
       return;
     }
-    const newQ: Question = {
-      id: questions.length + 1,
-      title: newQuestionTitle,
-      topic: newQuestionTopic,
-      content: newQuestionContent,
-      author: 'You',
-      time: 'Just now',
-      tags: [],
-      answers: []
-    };
-    setQuestions([newQ, ...questions]);
-    setNewQuestionTitle('');
-    setNewQuestionTopic('');
-    setNewQuestionContent('');
-    setNewQuestionDialogOpen(false);
-    toast.success(t.successQuestion);
+
+    const user = authAPI.getCurrentUser();
+    if (!user) {
+      toast.error(language === 'en' ? 'Please login first' : 'Vui lòng đăng nhập');
+      return;
+    }
+
+    try {
+      const response = await questionsAPI.create({
+        title: newQuestionTitle,
+        content: newQuestionContent,
+        topic: newQuestionTopic,
+        tags: [],
+        userId: user.id
+      });
+
+      if (response.success) {
+        setNewQuestionTitle('');
+        setNewQuestionTopic('');
+        setNewQuestionContent('');
+        setNewQuestionDialogOpen(false);
+        toast.success(t.successQuestion);
+        loadQuestions();
+      }
+    } catch (error) {
+      console.error('Error posting question:', error);
+      toast.error(language === 'en' ? 'Failed to post question' : 'Không thể đăng câu hỏi');
+    }
   };
 
-  const handlePostAnswer = () => {
+
+
+  const handlePostAnswer = async () => {
     if (!newAnswerContent || selectedQuestionId === null) return;
-    setQuestions((prev) =>
-      prev.map((q) => {
-        if (q.id === selectedQuestionId) {
-          const newAns: Answer = {
-            id: q.answers.length + 1,
-            author: 'You',
-            content: newAnswerContent,
-            time: 'Just now',
-            likes: 0,
-            isTutor: true
-          };
-          return { ...q, answers: [...q.answers, newAns] };
-        }
-        return q;
-      })
-    );
-    setNewAnswerContent('');
-    toast.success(t.successAnswer);
+
+    const user = authAPI.getCurrentUser();
+    if (!user) {
+      toast.error(language === 'en' ? 'Please login first' : 'Vui lòng đăng nhập');
+      return;
+    }
+
+    try {
+      const response = await questionsAPI.addAnswer(selectedQuestionId, {
+        content: newAnswerContent,
+        userId: user.id
+      });
+
+      if (response.success) {
+        setNewAnswerContent('');
+        toast.success(t.successAnswer);
+        // Reload questions to get updated data
+        loadQuestions();
+      }
+    } catch (error) {
+      console.error('Error posting answer:', error);
+      toast.error(language === 'en' ? 'Failed to post answer' : 'Không thể đăng câu trả lời');
+    }
   };
 
   if (selectedQuestionId !== null) {

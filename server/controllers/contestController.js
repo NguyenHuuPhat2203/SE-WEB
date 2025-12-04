@@ -1,15 +1,21 @@
 const contestService = require('../services/contestService');
 
-exports.list = (req, res) => {
-  const contests = contestService.getAll();
-  res.json({ success: true, data: contests });
+exports.list = async (req, res) => {
+  try {
+    const contests = await contestService.getAll();
+    res.json({ success: true, data: contests });
+  } catch (err) {
+    console.error('Error listing contests:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 };
 
-exports.detail = (req, res) => {
+exports.detail = async (req, res) => {
   try {
-    const contest = contestService.getById(req.params.id);
+    const contest = await contestService.getById(req.params.id);
     res.json({ success: true, data: contest });
   } catch (err) {
+    console.error('Error getting contest detail:', err);
     if (err.message === 'NOT_FOUND') {
       return res.status(404).json({ success: false, message: 'Contest not found' });
     }
@@ -17,11 +23,14 @@ exports.detail = (req, res) => {
   }
 };
 
-exports.register = (req, res) => {
+exports.register = async (req, res) => {
   try {
-    const contest = contestService.register(req.params.id);
+    // TODO: Get userId from JWT token in middleware
+    const userId = req.body.userId; // Temporary
+    const contest = await contestService.register(req.params.id, userId);
     res.json({ success: true, data: contest });
   } catch (err) {
+    console.error('Error registering for contest:', err);
     if (err.message === 'NOT_FOUND') {
       return res.status(404).json({ success: false, message: 'Contest not found' });
     }

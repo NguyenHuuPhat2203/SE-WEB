@@ -1,22 +1,24 @@
 // controllers/authController.js
 const authService = require('../services/authService');
 
-exports.register = (req, res) => {
-  console.log('[REGISTER] body =', req.body); // THÊM DÒNG NÀY
+exports.register = async (req, res) => {
+  console.log('[REGISTER] body =', req.body);
   try {
-    const newUser = authService.register(req.body);
+    const { user, token } = await authService.register(req.body);
 
     res.status(201).json({
       success: true,
       user: {
-        id: newUser.id,
-        bknetId: newUser.bknetId,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        role: newUser.role,
+        id: user._id,
+        bknetId: user.bknetId,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
       },
+      token
     });
   } catch (err) {
+    console.error('Register error:', err);
     if (err.message === 'MISSING_FIELDS') {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
@@ -27,21 +29,23 @@ exports.register = (req, res) => {
   }
 };
 
-exports.login = (req, res) => {
+exports.login = async (req, res) => {
   try {
-    const user = authService.login(req.body);
+    const { user, token } = await authService.login(req.body);
 
     res.json({
       success: true,
       user: {
-        id: user.id,
+        id: user._id,
         bknetId: user.bknetId,
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
       },
+      token
     });
   } catch (err) {
+    console.error('Login error:', err);
     if (err.message === 'MISSING_FIELDS') {
       return res.status(400).json({ success: false, message: 'Missing bknetId or password' });
     }
@@ -52,11 +56,12 @@ exports.login = (req, res) => {
   }
 };
 
-exports.searchAccount = (req, res) => {
+exports.searchAccount = async (req, res) => {
   try {
-    authService.findAccount(req.body);
+    await authService.findAccount(req.body);
     res.json({ success: true });
   } catch (err) {
+    console.error('Search account error:', err);
     if (err.message === 'MISSING_FIELDS') {
       return res.status(400).json({ success: false, message: 'Missing bknetId' });
     }
@@ -67,11 +72,12 @@ exports.searchAccount = (req, res) => {
   }
 };
 
-exports.resetPassword = (req, res) => {
+exports.resetPassword = async (req, res) => {
   try {
-    authService.resetPassword(req.body);
+    await authService.resetPassword(req.body);
     res.json({ success: true });
   } catch (err) {
+    console.error('Reset password error:', err);
     if (err.message === 'MISSING_FIELDS') {
       return res.status(400).json({ success: false, message: 'Missing fields' });
     }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Filter } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
@@ -7,17 +7,45 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../ui/badge';
 import { toast } from 'sonner@2.0.3';
 import type { Language } from '../../App';
+import { reportsAPI } from '../../services/api';
 
-const mockStudents = [
-  { id: 1, name: 'Nguyen Huu Phat', studentId: '2312588', consultations: 12, contests: 3, avgEval: 4.5, activityScore: 92 },
-  { id: 2, name: 'Nguyen Trong Ngha', studentId: '2312271', consultations: 15, contests: 4, avgEval: 4.8, activityScore: 95 },
-  { id: 3, name: 'Nguyen Minh Khanh', studentId: '2311518', consultations: 8, contests: 2, avgEval: 4.2, activityScore: 78 },
-  { id: 4, name: 'Tran Trung Kien', studentId: '2311744', consultations: 6, contests: 1, avgEval: 4.0, activityScore: 65 }
-];
+interface StudentActivity {
+  id: string;
+  name: string;
+  studentId: string;
+  email: string;
+  department?: string;
+  consultations: number;
+  contests: number;
+  questions: number;
+  avgEval: number;
+  activityScore: number;
+}
 
 export function ScholarshipEvaluationScreen({ language }: { language: Language }) {
   const [semester, setSemester] = useState('2025-1');
   const [department, setDepartment] = useState('all');
+  const [students, setStudents] = useState<StudentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStudentActivity();
+  }, [semester, department]);
+
+  const loadStudentActivity = async () => {
+    try {
+      setLoading(true);
+      const response = await reportsAPI.getStudentActivity(semester, department);
+      if (response.success && response.data) {
+        setStudents(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading student activity:', error);
+      toast.error(language === 'en' ? 'Failed to load student data' : 'Không thể tải dữ liệu sinh viên');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const t = {
     title: language === 'en' ? 'Scholarship Evaluation' : 'Đánh giá học bổng',
@@ -38,6 +66,15 @@ export function ScholarshipEvaluationScreen({ language }: { language: Language }
     if (score >= 75) return <Badge variant="secondary">Good</Badge>;
     return <Badge variant="outline">Fair</Badge>;
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <h1 className="text-gray-900">{t.title}</h1>
+        <p className="text-gray-500 mt-4">Loading student activity data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -104,17 +141,25 @@ export function ScholarshipEvaluationScreen({ language }: { language: Language }
             </TableHeader>
 
             <TableBody>
-              {mockStudents.map((student) => (
-                <TableRow key={student.id}>
-                  <TableCell>{student.name}</TableCell>
-                  <TableCell>{student.studentId}</TableCell>
-                  <TableCell className="text-right">{student.consultations}</TableCell>
-                  <TableCell className="text-right">{student.contests}</TableCell>
-                  <TableCell className="text-right">{student.avgEval}</TableCell>
-                  <TableCell className="text-right">{student.activityScore}</TableCell>
-                  <TableCell className="text-right">{getScoreBadge(student.activityScore)}</TableCell>
+              {students.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-gray-500">
+                    {language === 'en' ? 'No student data available' : 'Không có dữ liệu sinh viên'}
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                students.map((student) => (
+                  <TableRow key={student.id}>
+                    <TableCell>{student.name}</TableCell>
+                    <TableCell>{student.studentId}</TableCell>
+                    <TableCell className="text-right">{student.consultations}</TableCell>
+                    <TableCell className="text-right">{student.contests}</TableCell>
+                    <TableCell className="text-right">{student.avgEval}</TableCell>
+                    <TableCell className="text-right">{student.activityScore}</TableCell>
+                    <TableCell className="text-right">{getScoreBadge(student.activityScore)}</TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
 
           </Table>

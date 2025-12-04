@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from './components/ui/sonner';
 import { TopAppBar } from './components/TopAppBar';
+import { authAPI } from './services/api';
 import { Sidebar } from './components/Sidebar';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { RegisterScreen } from './components/auth/RegisterScreen';
@@ -59,21 +60,42 @@ export default function App() {
   const [selectedConsultationSessionId, setSelectedConsultationSessionId] = useState<number>(1);
   const [selectedResourceId, setSelectedResourceId] = useState<number>(1);
 
+  // Check for existing session on mount
+  useEffect(() => {
+    const currentUser = authAPI.getCurrentUser();
+    if (currentUser) {
+      const appUser: User = {
+        name: `${currentUser.firstName} ${currentUser.lastName}`,
+        role: currentUser.role,
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
+        bknetId: currentUser.bknetId,
+        faculty: currentUser.role === 'student' ? 'Computer Science' : undefined,
+        department: currentUser.role !== 'student' ? 'Computer Science' : undefined
+      };
+      setUser(appUser);
+      setCurrentScreen('home');
+    }
+  }, []);
+
   const handleLogin = (bknetId: string, role: UserRole) => {
-    // Mock login
-    const mockUser: User = {
-      name: role === 'student' ? 'CNPM_36' : role === 'tutor' ? 'Dr. CNPM_36' : role === 'cod' ? 'Prof. CNPM_36' : 'CTSV_Admin',
-      role,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-      bknetId,
-      faculty: role === 'student' ? 'Computer Science' : undefined,
-      department: role !== 'student' ? 'Computer Science' : undefined
-    };
-    setUser(mockUser);
-    setCurrentScreen('home');
+    // Get user from localStorage (saved by authAPI.login)
+    const currentUser = authAPI.getCurrentUser();
+    if (currentUser) {
+      const appUser: User = {
+        name: `${currentUser.firstName} ${currentUser.lastName}`,
+        role: currentUser.role,
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
+        bknetId: currentUser.bknetId,
+        faculty: currentUser.role === 'student' ? 'Computer Science' : undefined,
+        department: currentUser.role !== 'student' ? 'Computer Science' : undefined
+      };
+      setUser(appUser);
+      setCurrentScreen('home');
+    }
   };
 
   const handleLogout = () => {
+    authAPI.logout();
     setUser(null);
     setCurrentScreen('login');
   };

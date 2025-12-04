@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Star, Clock, Sparkles, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -9,7 +9,10 @@ import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../ui/sheet';
+import { toast } from 'sonner';
 import type { Language } from '../../App';
+import { tutorsAPI } from '../../services/api';
+import { formatTutor } from '../../services/dataFormatters';
 
 interface Tutor {
   id: number;
@@ -65,13 +68,34 @@ const mockTutors: Tutor[] = [
 export function FindTutorScreen({ language, onNavigate }: FindTutorScreenProps) {
   const [bknetId, setBknetId] = useState('');
   const [course, setCourse] = useState('');
-  const [results, setResults] = useState(mockTutors);
+  const [results, setResults] = useState<Tutor[]>([]);
   const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [minRating, setMinRating] = useState<number>(0);
   const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTutors();
+  }, []);
+
+  const loadTutors = async () => {
+    try {
+      setLoading(true);
+      const response = await tutorsAPI.getAll();
+      if (response.success && response.data) {
+        const formattedTutors = response.data.map(formatTutor);
+        setResults(formattedTutors);
+      }
+    } catch (error) {
+      console.error('Error loading tutors:', error);
+      toast.error(language === 'en' ? 'Failed to load tutors' : 'Không thể tải danh sách cố vấn');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const t = {
     title: language === 'en' ? 'Find Tutor' : 'Tìm cố vấn',
@@ -122,11 +146,20 @@ export function FindTutorScreen({ language, onNavigate }: FindTutorScreenProps) 
     setShowAISuggestions(true);
     setResults([...mockTutors].sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0)));
   };
-  const clearFilters = () => {
+  const resetFilters = () => {
     setSearchQuery(''); setSelectedDepartments([]); setMinRating(0);
     setSelectedSpecializations([]); setBknetId(''); setCourse('');
-    setResults(mockTutors);
+    loadTutors();
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <h1 className="text-gray-900 mb-4">{t.title}</h1>
+        <p className="text-gray-500">Loading tutors...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

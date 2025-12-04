@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Plus, Search, Edit, Trash2, FileText,
   CheckCircle, XCircle, Clock
@@ -14,6 +14,9 @@ import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { toast } from 'sonner@2.0.3';
 import type { Language } from '../../App';
+// Note: COD screens use mock data for course management
+// To integrate with backend, need to create Course model and CRUD endpoints
+// Can use reportsAPI.getCourseStatistics() to get real session statistics per subject
 
 export function ManageCoursesAndRequests({ language }: { language: Language }) {
   const [screen, setScreen] = useState<'list' | 'requests'>('list');

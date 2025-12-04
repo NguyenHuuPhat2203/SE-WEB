@@ -1,25 +1,25 @@
 const contestRepository = require('../repositories/contestRepository');
 
 class ContestService {
-  getAll() {
-    return contestRepository.findAll();
+  async getAll() {
+    return await contestRepository.findAll();
   }
 
-  getOngoing() {
-    return contestRepository.findOpen();
+  async getOngoing() {
+    return await contestRepository.findOpen();
   }
 
-  getById(id) {
-    const contest = contestRepository.findById(id);
+  async getById(id) {
+    const contest = await contestRepository.findById(id);
     if (!contest) throw new Error('NOT_FOUND');
     return contest;
   }
 
-  register(contestId) {
-    const contest = contestRepository.register(contestId);
+  async register(contestId, userId) {
+    const contest = await contestRepository.findById(contestId);
     if (!contest) throw new Error('NOT_FOUND');
     if (contest.status !== 'open') throw new Error('CONTEST_CLOSED');
-    return contest;
+    return await contestRepository.register(contestId, userId);
   }
 }
 

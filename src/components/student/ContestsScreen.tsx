@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Trophy, Calendar, Users, Clock, Award, FileText, ChevronLeft, Download, Search, Filter } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { toast } from 'sonner';
 import type { Language } from '../../App';
+import { contestsAPI, authAPI } from '../../services/api';
+import { formatContest } from '../../services/dataFormatters';
 
 interface Contest {
   id: number;
@@ -61,13 +64,51 @@ export function ContestsScreen({ language }: { language: Language }) {
   const [selectedContestId, setSelectedContestId] = useState<number | null>(null);
   const [searchText, setSearchText] = useState('');
   const [filter, setFilter] = useState<'all' | 'academic' | 'non-academic'>('all');
+  const [contests, setContests] = useState<Contest[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const toggleRegister = (id: number) => {
-    setRegistered(prev => prev.includes(id) ? prev : [...prev, id]);
+  useEffect(() => {
+    loadContests();
+  }, []);
+
+  const loadContests = async () => {
+    try {
+      setLoading(true);
+      const response = await contestsAPI.getAll();
+      if (response.success && response.data) {
+        const formattedContests = response.data.map(formatContest);
+        setContests(formattedContests);
+      }
+    } catch (error) {
+      console.error('Error loading contests:', error);
+      toast.error(language === 'en' ? 'Failed to load contests' : 'Không thể tải danh sách cuộc thi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleRegister = async (id: number) => {
+    const user = authAPI.getCurrentUser();
+    if (!user) {
+      toast.error(language === 'en' ? 'Please login first' : 'Vui lòng đăng nhập');
+      return;
+    }
+
+    try {
+      const response = await contestsAPI.register(id, user.id);
+      if (response.success) {
+        setRegistered(prev => prev.includes(id) ? prev : [...prev, id]);
+        toast.success(language === 'en' ? 'Registered successfully!' : 'Đăng ký thành công!');
+        loadContests(); // Reload to update participant count
+      }
+    } catch (error) {
+      console.error('Error registering for contest:', error);
+      toast.error(language === 'en' ? 'Failed to register' : 'Không thể đăng ký');
+    }
   };
 
   if (selectedContestId !== null) {
-    const contest = mockContestDetails[selectedContestId];
+    const contest = contests.find(c => c.id === selectedContestId);
     if (!contest) return <p>Contest not found</p>;
 
     return (
@@ -144,11 +185,20 @@ export function ContestsScreen({ language }: { language: Language }) {
   }
 
   // Filter and search contests
-  const filteredContests = mockContests.filter(c => {
+  const filteredContests = contests.filter(c => {
     const matchesSearch = c.title.toLowerCase().includes(searchText.toLowerCase());
     const matchesFilter = filter === 'all' || c.type === filter;
     return matchesSearch && matchesFilter;
   });
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <h1 className="text-gray-900 mb-6">{t.contests}</h1>
+        <p className="text-gray-500">Loading contests...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
