@@ -7,10 +7,7 @@ import type { Language } from '../../App';
 interface StudentHomeProps {
   onNavigate: (screen: string, sessionId?: number) => void;
   language: Language;
-  user: {
-    name: string;
-    faculty?: string;
-  };
+  user
 }
 
 export function StudentHome({ onNavigate, language, user }: StudentHomeProps) {
@@ -90,7 +87,7 @@ export function StudentHome({ onNavigate, language, user }: StudentHomeProps) {
           <div className="flex flex-col items-center mb-4">
             <Avatar className="h-20 w-20 mb-2">
               <AvatarFallback className="bg-gradient-to-br from-purple-400 to-indigo-400 text-white text-2xl">
-                {user.name.charAt(0)}
+                {user.bknetId}
               </AvatarFallback>
             </Avatar>
             <p className="text-center mb-1">{user.name}</p>

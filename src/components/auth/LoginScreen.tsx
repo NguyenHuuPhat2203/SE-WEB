@@ -17,7 +17,7 @@ import { AlertCircle, GraduationCap } from 'lucide-react';
 import type { Language, UserRole } from '../../App';
 
 interface LoginScreenProps {
-  onLogin: (bknetId: string, role: UserRole) => void;
+  onLogin: (bknetId: string, password: string) => void;
   onNavigate: (screen: string) => void;
   language: Language;
 }
@@ -71,7 +71,7 @@ export function LoginScreen({ onLogin, onNavigate, language }: LoginScreenProps)
       }
 
       // dùng role từ server
-      onLogin(data.user.bknetId, data.user.role);
+      onLogin(bknetId, password);
     } catch (err) {
       setError(language === 'en' ? 'Cannot connect to server' : 'Không thể kết nối server');
     }

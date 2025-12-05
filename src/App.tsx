@@ -38,14 +38,17 @@ import { ScholarshipEvaluationScreen } from './components/ctsv/ScholarshipEvalua
 export type UserRole = 'student' | 'tutor' | 'cod' | 'ctsv';
 export type Language = 'vi' | 'en';
 
-interface User {
-  name: string;
-  role: UserRole;
-  avatar: string;
+export interface User {
+  id: string;
   bknetId: string;
+  firstName: string;
+  lastName: string;
+  role: 'student' | 'tutor' | 'cod' | 'ctsv';
   faculty?: string;
   department?: string;
+  name?: string
 }
+
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<string>('login');
@@ -59,19 +62,33 @@ export default function App() {
   const [selectedConsultationSessionId, setSelectedConsultationSessionId] = useState<number>(1);
   const [selectedResourceId, setSelectedResourceId] = useState<number>(1);
 
-  const handleLogin = (bknetId: string, role: UserRole) => {
-    // Mock login
-    const mockUser: User = {
-      name: role === 'student' ? 'CNPM_36' : role === 'tutor' ? 'Dr. CNPM_36' : role === 'cod' ? 'Prof. CNPM_36' : 'CTSV_Admin',
-      role,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-      bknetId,
-      faculty: role === 'student' ? 'Computer Science' : undefined,
-      department: role !== 'student' ? 'Computer Science' : undefined
-    };
-    setUser(mockUser);
-    setCurrentScreen('home');
+  const handleLogin = async (bknetId: string, password: string) => {
+    try {
+      const res = await fetch("http://localhost:3001/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bknetId, password }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        alert("Login failed");
+        return;
+      }
+
+      // user thật từ backend
+      setUser({...data.user,
+        name: `${data.user.firstName} ${data.user.lastName}`,
+      });
+      setCurrentScreen("home");
+
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
   };
+
 
   const handleLogout = () => {
     setUser(null);
@@ -168,13 +185,15 @@ export default function App() {
             />
           );
         case 'notifications':
-          return <StudentNotifications language={language} onUnreadChange={setUnreadNotifications} allowCompose />;
+          return <StudentNotifications language={language} user={user} allowCompose />;
+          // return <StudentNotifications language={language} user={user} onUnreadChange={setUnreadNotifications} allowCompose />;
         case 'feedback':
           return <FeedbackScreen language={language} />;
         case 'qa':
           return (
             <QAScreen
               language={language}
+              user={user}
               onNavigate={(screen, questionId) => {
                 if (questionId) setSelectedQuestionId(questionId);
                 if (screen) setCurrentScreen(screen);
@@ -194,9 +213,9 @@ export default function App() {
             />
           );
         case 'consultation-sessions':
-          return <ConsultationSessionsScreen language={language} />;
+          return <ConsultationSessionsScreen language={language} user={user} />;
         case 'request-courses':
-          return <RequestCoursesScreen language={language} onNavigate={(screen, courseId) => {
+          return <RequestCoursesScreen language={language} user={user} onNavigate={(screen, courseId) => {
             if (courseId) setSelectedCourseId(courseId);
             setCurrentScreen(screen);
           }} />;
@@ -256,7 +275,7 @@ export default function App() {
         case 'home':
           return <TutorHome onNavigate={setCurrentScreen} language={language} user={user} />;
         case 'notifications':
-          return <StudentNotifications language={language} onUnreadChange={setUnreadNotifications} allowCompose />;
+          return <StudentNotifications language={language} user={user} allowCompose />;
         case 'consultation':
           return (
             <ConsultationScreen
@@ -269,8 +288,9 @@ export default function App() {
           );
         case 'qa':
           return (
-            <TutorQAScreen
+            <QAScreen
               language={language}
+              user={user}
               onNavigate={(screen, questionId) => {
                 if (questionId) setSelectedQuestionId(questionId);
                 if (screen) setCurrentScreen(screen);
@@ -329,7 +349,7 @@ export default function App() {
     if (user.role === 'ctsv') {
       switch (currentScreen) {
         case 'home':
-          return <CTSVHome onNavigate={setCurrentScreen} language={language} />;
+          return <CTSVHome onNavigate={setCurrentScreen} language={language} user={user} />;
         case 'scholarship':
           return <ScholarshipEvaluationScreen language={language} />;
         case 'reports':

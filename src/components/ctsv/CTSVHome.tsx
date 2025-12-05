@@ -5,7 +5,7 @@ import { Badge } from '../ui/badge';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import type { Language } from '../../App';
 
-export function CTSVHome({ onNavigate, language }: any) {
+export function CTSVHome({ onNavigate, language, user }: any) {
   const t = {
     dashboard: language === 'en' ? 'CTSV Dashboard' : 'Bảng điều khiển CTSV',
     evaluations: language === 'en' ? 'Evaluations' : 'Đánh giá',
@@ -227,7 +227,7 @@ export function CTSVHome({ onNavigate, language }: any) {
                 CT
               </AvatarFallback>
             </Avatar>
-            <p className="text-center mb-1">CTSV Manager</p>
+            <p className="text-center mb-1">{user.name}</p>
             <p className="text-sm text-gray-500 mb-2">{t.ctsv}</p>
             <p className="text-sm text-gray-600">Student Affairs Office</p>
           </div>

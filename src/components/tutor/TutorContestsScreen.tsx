@@ -1,78 +1,531 @@
-import { useState } from 'react';
-import { Plus, Trophy, Users, Download } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+// // import { useState } from 'react';
+// // import { Plus, Trophy, Users, Download } from 'lucide-react';
+// // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+// // import { Button } from '../ui/button';
+// // import { Badge } from '../ui/badge';
+// // import { Input } from '../ui/input';
+// // import { Label } from '../ui/label';
+// // import { Textarea } from '../ui/textarea';
+// // import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+// // import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+// // import { toast } from 'sonner@2.0.3';
+// // import type { Language } from '../../App';
+
+// // interface Contest {
+// //   id: number;
+// //   name: string;
+// //   type: 'academic' | 'non-academic';
+// //   status: 'open' | 'closed';
+// //   participants: number;
+// //   created: string;
+// // }
+
+// // export function TutorContestsScreen({ language }: { language: Language }) {
+// //   const [open, setOpen] = useState(false);
+// //   const [contestType, setContestType] = useState<'academic' | 'non-academic'>('academic');
+// //   const [name, setName] = useState('');
+// //   const [description, setDescription] = useState('');
+// //   const [contests, setContests] = useState<Contest[]>([
+// //     { id: 1, name: 'Algorithm Challenge 2025', type: 'academic', status: 'open', participants: 45, created: 'Dec 10, 2025' },
+// //     { id: 2, name: 'Data Science Competition', type: 'academic', status: 'closed', participants: 67, created: 'Nov 1, 2025' }
+// //   ]);
+
+// //   const t = {
+// //     title: language === 'en' ? 'Contests (Tutor)' : 'Cuộc thi (Cố vấn)',
+// //     create: language === 'en' ? 'Create contest' : 'Tạo cuộc thi',
+// //     name: language === 'en' ? 'Name of contest' : 'Tên cuộc thi',
+// //     description: language === 'en' ? 'Description' : 'Mô tả',
+// //     type: language === 'en' ? 'Contest type' : 'Loại cuộc thi',
+// //     academic: language === 'en' ? 'Academic' : 'Học thuật',
+// //     nonAcademic: language === 'en' ? 'Non-academic' : 'Phi học thuật',
+// //     startDate: language === 'en' ? 'Start date' : 'Ngày bắt đầu',
+// //     endDate: language === 'en' ? 'End date' : 'Ngày kết thúc',
+// //     cancel: language === 'en' ? 'Cancel' : 'Hủy',
+// //     participants: language === 'en' ? 'participants' : 'người tham gia',
+// //     open: language === 'en' ? 'Open' : 'Đang mở',
+// //     closed: language === 'en' ? 'Closed' : 'Đã đóng',
+// //     exportResults: language === 'en' ? 'Export results' : 'Xuất kết quả',
+// //     success: language === 'en' ? 'Contest created successfully!' : 'Đã tạo cuộc thi!',
+// //     downloaded: language === 'en' ? 'Downloaded' : 'Đã tải xuống'
+// //   };
+
+// //   const handleCreate = () => {
+// //     if (!name.trim() || !description.trim()) {
+// //       toast.error(language === 'en' ? 'Please fill all required fields' : 'Vui lòng điền đầy đủ thông tin');
+// //       return;
+// //     }
+
+// //     const newContest: Contest = {
+// //       id: contests.length + 1,
+// //       name,
+// //       type: contestType,
+// //       status: 'open',
+// //       participants: 0,
+// //       created: new Date().toLocaleDateString()
+// //     };
+
+// //     setContests([newContest, ...contests]);
+// //     toast.success(t.success);
+// //     setOpen(false);
+// //     setName('');
+// //     setDescription('');
+// //   };
+
+// //   return (
+// //     <div className="p-6 max-w-7xl mx-auto">
+// //       <div className="mb-6 flex items-center justify-between">
+// //         <h1 className="text-gray-900">{t.title}</h1>
+// //         <Dialog open={open} onOpenChange={setOpen}>
+// //           <DialogTrigger asChild>
+// //             <Button>
+// //               <Plus className="h-4 w-4 mr-2" />
+// //               {t.create}
+// //             </Button>
+// //           </DialogTrigger>
+// //           <DialogContent className="sm:max-w-[600px]">
+// //             <DialogHeader>
+// //               <DialogTitle>{t.create}</DialogTitle>
+// //               <DialogDescription>Create a new contest for students</DialogDescription>
+// //             </DialogHeader>
+// //             <div className="space-y-4 py-4">
+// //               <div className="space-y-2">
+// //                 <Label>{t.type}</Label>
+// //                 <RadioGroup value={contestType} onValueChange={setContestType}>
+// //                   <div className="flex items-center space-x-2">
+// //                     <RadioGroupItem value="academic" id="academic" />
+// //                     <Label htmlFor="academic" className="cursor-pointer">{t.academic}</Label>
+// //                   </div>
+// //                   <div className="flex items-center space-x-2">
+// //                     <RadioGroupItem value="non-academic" id="non-academic" />
+// //                     <Label htmlFor="non-academic" className="cursor-pointer">{t.nonAcademic}</Label>
+// //                   </div>
+// //                 </RadioGroup>
+// //               </div>
+// //               <div className="space-y-2">
+// //                 <Label htmlFor="name">{t.name} *</Label>
+// //                 <Input id="name" value={name} onChange={e => setName(e.target.value)} />
+// //               </div>
+// //               <div className="space-y-2">
+// //                 <Label htmlFor="description">{t.description} *</Label>
+// //                 <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={4} />
+// //               </div>
+// //               <div className="grid grid-cols-2 gap-4">
+// //                 <div className="space-y-2">
+// //                   <Label htmlFor="startDate">{t.startDate}</Label>
+// //                   <Input id="startDate" type="date" />
+// //                 </div>
+// //                 <div className="space-y-2">
+// //                   <Label htmlFor="endDate">{t.endDate}</Label>
+// //                   <Input id="endDate" type="date" />
+// //                 </div>
+// //               </div>
+// //             </div>
+// //             <DialogFooter>
+// //               <Button variant="outline" onClick={() => setOpen(false)}>{t.cancel}</Button>
+// //               <Button onClick={handleCreate}>{t.create}</Button>
+// //             </DialogFooter>
+// //           </DialogContent>
+// //         </Dialog>
+// //       </div>
+
+// //       <div className="space-y-4">
+// //         {contests.map(contest => (
+// //           <Card key={contest.id}>
+// //             <CardHeader>
+// //               <div className="flex items-start justify-between">
+// //                 <div className="flex items-center gap-3">
+// //                   <Trophy className="h-6 w-6 text-yellow-600" />
+// //                   <div>
+// //                     <CardTitle>{contest.name}</CardTitle>
+// //                     <CardDescription>Created on {contest.created}</CardDescription>
+// //                   </div>
+// //                 </div>
+// //                 <Badge variant={contest.status === 'open' ? 'default' : 'secondary'}>
+// //                   {contest.status === 'open' ? t.open : t.closed}
+// //                 </Badge>
+// //               </div>
+// //             </CardHeader>
+// //             <CardContent>
+// //               <div className="flex items-center justify-between">
+// //                 <div className="flex items-center gap-6 text-sm text-gray-600">
+// //                   <div className="flex items-center gap-2">
+// //                     <Users className="h-4 w-4" />
+// //                     <span>{contest.participants} {t.participants}</span>
+// //                   </div>
+// //                   <Badge variant="outline">{contest.type}</Badge>
+// //                 </div>
+// //                 {/* <Button
+// //                   variant="outline"
+// //                   size="sm"
+// //                   onClick={() => toast.success(t.downloaded)}
+// //                 >
+// //                   <Download className="h-4 w-4 mr-2" />
+// //                   {t.exportResults}
+// //                 </Button> */}
+// //                 <Button
+// //                   variant="outline"
+// //                   size="sm"
+// //                   onClick={() => toast.success(t.downloaded)}
+// //                 >
+// //                   <Download className="h-4 w-4 mr-2" />
+// //                   {t.exportResults}
+// //                 </Button>
+// //               </div>
+// //             </CardContent>
+// //           </Card>
+// //         ))}
+// //       </div>
+// //     </div>
+// //   );
+// // }
+
+
+// import { useEffect, useState } from 'react';
+// import { Trophy, Users, Download, Plus, Filter } from 'lucide-react';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+// import { Button } from '../ui/button';
+// import { Badge } from '../ui/badge';
+// import { Input } from '../ui/input';
+// import { Label } from '../ui/label';
+// import { Textarea } from '../ui/textarea';
+// import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogTrigger,
+// } from '../ui/dialog';
+// import { toast } from 'sonner';
+// import type { Language } from '../../App';
+
+// interface Contest {
+//   id: number;
+//   title: string;
+//   type: 'academic' | 'non-academic';
+//   status: 'open' | 'closed';
+//   participants: number;
+//   maxParticipants?: number;
+//   location?: string;
+//   organizer?: string;
+//   startDate?: string;
+//   endDate?: string;
+//   description?: string;
+// }
+
+// export function TutorContestsScreen({ language }: { language: Language }) {
+//   const [open, setOpen] = useState(false);
+//   const [contests, setContests] = useState<Contest[]>([]);
+//   const [title, setTitle] = useState('');
+//   const [description, setDescription] = useState('');
+//   const [type, setType] = useState<'academic' | 'non-academic'>('academic');
+//   const [startDate, setStartDate] = useState('');
+//   const [endDate, setEndDate] = useState('');
+
+//   const t = {
+//     title: language === 'en' ? 'Manage Contests' : 'Quản lý cuộc thi',
+//     create: language === 'en' ? 'Create contest' : 'Tạo cuộc thi',
+//     name: language === 'en' ? 'Contest title' : 'Tên cuộc thi',
+//     description: language === 'en' ? 'Description' : 'Mô tả',
+//     type: language === 'en' ? 'Type' : 'Loại cuộc thi',
+//     academic: language === 'en' ? 'Academic' : 'Học thuật',
+//     nonAcademic: language === 'en' ? 'Non-academic' : 'Phi học thuật',
+//     start: language === 'en' ? 'Start date' : 'Ngày bắt đầu',
+//     end: language === 'en' ? 'End date' : 'Ngày kết thúc',
+//     cancel: language === 'en' ? 'Cancel' : 'Hủy',
+//     success: language === 'en' ? 'Contest created successfully!' : 'Tạo cuộc thi thành công!',
+//     participants: language === 'en' ? 'participants' : 'người tham gia',
+//     open: language === 'en' ? 'Open' : 'Đang mở',
+//     closed: language === 'en' ? 'Closed' : 'Đã đóng',
+//     exportResults: language === 'en' ? 'Export results' : 'Xuất kết quả',
+//     downloaded: language === 'en' ? 'Downloaded' : 'Đã tải xuống',
+//   };
+
+//   // ================= FETCH contests from BE =================
+//   useEffect(() => {
+//     fetch('http://localhost:3001/api/contests')
+//       .then(res => res.json())
+//       .then(json => {
+//         if (json.success) setContests(json.data);
+//         else toast.error('Failed to load contests');
+//       })
+//       .catch(() => toast.error('Cannot connect to backend'));
+//   }, []);
+
+//   // ================= CREATE contest =================
+//   const handleCreate = async () => {
+//     if (!title || !startDate || !endDate) {
+//       toast.error(language === 'en' ? 'Please fill all required fields' : 'Vui lòng điền đầy đủ thông tin');
+//       return;
+//     }
+
+//     const newContest = { title, type, description, startDate, endDate };
+
+//     try {
+//       const res = await fetch('http://localhost:3001/api/addcontest', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(newContest),
+//       });
+
+//       const json = await res.json();
+
+//       if (json.success) {
+//         toast.success(t.success);
+//         setContests(prev => [json.data, ...prev]);
+//         setOpen(false);
+//         setTitle('');
+//         setDescription('');
+//         setStartDate('');
+//         setEndDate('');
+//         setType('academic');
+//       } else {
+//         toast.error(json.message || 'Failed to create contest');
+//       }
+//     } catch (err) {
+//       console.error(err);
+//       toast.error('Server error');
+//     }
+//   };
+
+//   return (
+//     <div className="p-6 max-w-7xl mx-auto">
+//       {/* Header */}
+//       <div className="mb-6 flex items-center justify-between">
+//         <h1 className="text-gray-900">{t.title}</h1>
+//         <Dialog open={open} onOpenChange={setOpen}>
+//           <DialogTrigger asChild>
+//             <Button>
+//               <Plus className="h-4 w-4 mr-2" />
+//               {t.create}
+//             </Button>
+//           </DialogTrigger>
+//           <DialogContent className="sm:max-w-[600px]">
+//             <DialogHeader>
+//               <DialogTitle>{t.create}</DialogTitle>
+//               <DialogDescription>Enter contest information below</DialogDescription>
+//             </DialogHeader>
+//             <div className="space-y-4 py-4">
+//               <div className="space-y-2">
+//                 <Label>{t.type}</Label>
+//                 <RadioGroup value={type} onValueChange={v => setType(v as 'academic' | 'non-academic')}>
+//                   <div className="flex items-center space-x-2">
+//                     <RadioGroupItem value="academic" id="academic" />
+//                     <Label htmlFor="academic" className="cursor-pointer">{t.academic}</Label>
+//                   </div>
+//                   <div className="flex items-center space-x-2">
+//                     <RadioGroupItem value="non-academic" id="non-academic" />
+//                     <Label htmlFor="non-academic" className="cursor-pointer">{t.nonAcademic}</Label>
+//                   </div>
+//                 </RadioGroup>
+//               </div>
+
+//               <div className="space-y-2">
+//                 <Label htmlFor="title">{t.name} *</Label>
+//                 <Input id="title" value={title} onChange={e => setTitle(e.target.value)} />
+//               </div>
+
+//               <div className="space-y-2">
+//                 <Label htmlFor="description">{t.description}</Label>
+//                 <Textarea id="description" rows={3} value={description} onChange={e => setDescription(e.target.value)} />
+//               </div>
+
+//               <div className="grid grid-cols-2 gap-4">
+//                 <div className="space-y-2">
+//                   <Label htmlFor="start">{t.start}</Label>
+//                   <Input id="start" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+//                 </div>
+//                 <div className="space-y-2">
+//                   <Label htmlFor="end">{t.end}</Label>
+//                   <Input id="end" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+//                 </div>
+//               </div>
+//             </div>
+
+//             <DialogFooter>
+//               <Button variant="outline" onClick={() => setOpen(false)}>{t.cancel}</Button>
+//               <Button onClick={handleCreate}>{t.create}</Button>
+//             </DialogFooter>
+//           </DialogContent>
+//         </Dialog>
+//       </div>
+
+//       {/* Contest List */}
+//       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//         {contests.map(c => (
+//           <Card key={c.id} className="hover:shadow-md transition-shadow">
+//             <CardHeader>
+//               <div className="flex justify-between items-start">
+//                 <div className="flex items-center gap-3">
+//                   <Trophy className="h-6 w-6 text-yellow-600" />
+//                   <div>
+//                     <CardTitle>{c.title}</CardTitle>
+//                     <CardDescription>
+//                       {c.startDate} → {c.endDate}
+//                     </CardDescription>
+//                   </div>
+//                 </div>
+//                 <Badge variant={c.status === 'open' ? 'default' : 'secondary'}>
+//                   {c.status === 'open' ? t.open : t.closed}
+//                 </Badge>
+//               </div>
+//             </CardHeader>
+//             <CardContent className="flex items-center justify-between">
+//               <div className="flex items-center gap-6 text-sm text-gray-600">
+//                 <div className="flex items-center gap-2">
+//                   <Users className="h-4 w-4" />
+//                   <span>{c.participants} {t.participants}</span>
+//                 </div>
+//                 <Badge variant="outline">{c.type}</Badge>
+//               </div>
+//               <Button
+//                 variant="outline"
+//                 size="sm"
+//                 onClick={() => toast.success(t.downloaded)}
+//               >
+//                 <Download className="h-4 w-4 mr-2" />
+//                 {t.exportResults}
+//               </Button>
+//             </CardContent>
+//           </Card>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// }
+
+
+import { useEffect, useState } from 'react';
+import { Trophy, Users, Download, Plus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { toast } from 'sonner@2.0.3';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog';
+import { toast } from 'sonner';
 import type { Language } from '../../App';
 
 interface Contest {
   id: number;
-  name: string;
+  title: string;
   type: 'academic' | 'non-academic';
+  description: string;
+  location: string;
+  organizer: string;
   status: 'open' | 'closed';
   participants: number;
-  created: string;
+  startDate: string;
+  endDate: string;
+  rules?: string[];
 }
 
 export function TutorContestsScreen({ language }: { language: Language }) {
   const [open, setOpen] = useState(false);
-  const [contestType, setContestType] = useState<'academic' | 'non-academic'>('academic');
-  const [name, setName] = useState('');
+  const [contests, setContests] = useState<Contest[]>([]);
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [contests, setContests] = useState<Contest[]>([
-    { id: 1, name: 'Algorithm Challenge 2025', type: 'academic', status: 'open', participants: 45, created: 'Dec 10, 2025' },
-    { id: 2, name: 'Data Science Competition', type: 'academic', status: 'closed', participants: 67, created: 'Nov 1, 2025' }
-  ]);
+  const [type, setType] = useState<'academic' | 'non-academic'>('academic');
+  const [location, setLocation] = useState('');
+  const [organizer, setOrganizer] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [rulesText, setRulesText] = useState('');
 
   const t = {
-    title: language === 'en' ? 'Contests (Tutor)' : 'Cuộc thi (Cố vấn)',
+    title: language === 'en' ? 'Manage Contests' : 'Quản lý cuộc thi',
     create: language === 'en' ? 'Create contest' : 'Tạo cuộc thi',
-    name: language === 'en' ? 'Name of contest' : 'Tên cuộc thi',
+    name: language === 'en' ? 'Contest title' : 'Tên cuộc thi',
     description: language === 'en' ? 'Description' : 'Mô tả',
-    type: language === 'en' ? 'Contest type' : 'Loại cuộc thi',
+    type: language === 'en' ? 'Type' : 'Loại cuộc thi',
     academic: language === 'en' ? 'Academic' : 'Học thuật',
     nonAcademic: language === 'en' ? 'Non-academic' : 'Phi học thuật',
-    startDate: language === 'en' ? 'Start date' : 'Ngày bắt đầu',
-    endDate: language === 'en' ? 'End date' : 'Ngày kết thúc',
+    location: language === 'en' ? 'Location' : 'Địa điểm',
+    organizer: language === 'en' ? 'Organizer' : 'Đơn vị tổ chức',
+    start: language === 'en' ? 'Start date' : 'Ngày bắt đầu',
+    end: language === 'en' ? 'End date' : 'Ngày kết thúc',
+    rules: language === 'en' ? 'Rules (each line = one rule)' : 'Quy định (mỗi dòng là 1 mục)',
     cancel: language === 'en' ? 'Cancel' : 'Hủy',
+    success: language === 'en' ? 'Contest created successfully!' : 'Tạo cuộc thi thành công!',
     participants: language === 'en' ? 'participants' : 'người tham gia',
     open: language === 'en' ? 'Open' : 'Đang mở',
     closed: language === 'en' ? 'Closed' : 'Đã đóng',
     exportResults: language === 'en' ? 'Export results' : 'Xuất kết quả',
-    success: language === 'en' ? 'Contest created successfully!' : 'Đã tạo cuộc thi!',
-    downloaded: language === 'en' ? 'Downloaded' : 'Đã tải xuống'
+    downloaded: language === 'en' ? 'Downloaded' : 'Đã tải xuống',
   };
 
-  const handleCreate = () => {
-    if (!name.trim() || !description.trim()) {
+  // ================= FETCH contests from backend =================
+  useEffect(() => {
+    fetch('http://localhost:3001/api/contests')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) setContests(json.data);
+        else toast.error('Failed to load contests');
+      })
+      .catch(() => toast.error('Cannot connect to backend'));
+  }, []);
+
+  // ================= CREATE new contest =================
+  const handleCreate = async () => {
+    if (!title || !startDate || !endDate) {
       toast.error(language === 'en' ? 'Please fill all required fields' : 'Vui lòng điền đầy đủ thông tin');
       return;
     }
 
-    const newContest: Contest = {
-      id: contests.length + 1,
-      name,
-      type: contestType,
-      status: 'open',
-      participants: 0,
-      created: new Date().toLocaleDateString()
+    const newContest = {
+      title,
+      type,
+      description,
+      startDate,
+      endDate,
+      location,
+      organizer,
+      rules: rulesText.split('\n').filter(line => line.trim() !== ''),
     };
 
-    setContests([newContest, ...contests]);
-    toast.success(t.success);
-    setOpen(false);
-    setName('');
-    setDescription('');
+    try {
+      const res = await fetch('http://localhost:3001/api/addcontest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newContest),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast.success(t.success);
+        setContests(prev => [json.data, ...prev]);
+        setOpen(false);
+        // reset form
+        setTitle('');
+        setDescription('');
+        setLocation('');
+        setOrganizer('');
+        setStartDate('');
+        setEndDate('');
+        setRulesText('');
+        setType('academic');
+      } else {
+        toast.error(json.message || 'Failed to create contest');
+      }
+    } catch {
+      toast.error('Server error');
+    }
   };
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-gray-900">{t.title}</h1>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -82,15 +535,18 @@ export function TutorContestsScreen({ language }: { language: Language }) {
               {t.create}
             </Button>
           </DialogTrigger>
+
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>{t.create}</DialogTitle>
-              <DialogDescription>Create a new contest for students</DialogDescription>
+              <DialogDescription>Enter detailed contest information</DialogDescription>
             </DialogHeader>
+
             <div className="space-y-4 py-4">
+              {/* Contest Type */}
               <div className="space-y-2">
                 <Label>{t.type}</Label>
-                <RadioGroup value={contestType} onValueChange={setContestType}>
+                <RadioGroup value={type} onValueChange={v => setType(v as 'academic' | 'non-academic')}>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="academic" id="academic" />
                     <Label htmlFor="academic" className="cursor-pointer">{t.academic}</Label>
@@ -101,25 +557,54 @@ export function TutorContestsScreen({ language }: { language: Language }) {
                   </div>
                 </RadioGroup>
               </div>
+
+              {/* Title + Description */}
               <div className="space-y-2">
-                <Label htmlFor="name">{t.name} *</Label>
-                <Input id="name" value={name} onChange={e => setName(e.target.value)} />
+                <Label htmlFor="title">{t.name} *</Label>
+                <Input id="title" value={title} onChange={e => setTitle(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">{t.description} *</Label>
-                <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows={4} />
+                <Label htmlFor="description">{t.description}</Label>
+                <Textarea id="description" rows={3} value={description} onChange={e => setDescription(e.target.value)} />
               </div>
+
+              {/* Location + Organizer */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="startDate">{t.startDate}</Label>
-                  <Input id="startDate" type="date" />
+                  <Label htmlFor="location">{t.location}</Label>
+                  <Input id="location" value={location} onChange={e => setLocation(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="endDate">{t.endDate}</Label>
-                  <Input id="endDate" type="date" />
+                  <Label htmlFor="organizer">{t.organizer}</Label>
+                  <Input id="organizer" value={organizer} onChange={e => setOrganizer(e.target.value)} />
                 </div>
               </div>
+
+              {/* Start + End Date */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start">{t.start}</Label>
+                  <Input id="start" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end">{t.end}</Label>
+                  <Input id="end" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                </div>
+              </div>
+
+              {/* Rules */}
+              <div className="space-y-2">
+                <Label htmlFor="rules">{t.rules}</Label>
+                <Textarea
+                  id="rules"
+                  placeholder="Example:\n- Each participant must register individually.\n- Submit results before the deadline."
+                  rows={3}
+                  value={rulesText}
+                  onChange={e => setRulesText(e.target.value)}
+                />
+              </div>
             </div>
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>{t.cancel}</Button>
               <Button onClick={handleCreate}>{t.create}</Button>
@@ -128,49 +613,42 @@ export function TutorContestsScreen({ language }: { language: Language }) {
         </Dialog>
       </div>
 
-      <div className="space-y-4">
-        {contests.map(contest => (
-          <Card key={contest.id}>
+      {/* Contest List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {contests.map(c => (
+          <Card key={c.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <div className="flex items-start justify-between">
+              <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
                   <Trophy className="h-6 w-6 text-yellow-600" />
                   <div>
-                    <CardTitle>{contest.name}</CardTitle>
-                    <CardDescription>Created on {contest.created}</CardDescription>
+                    <CardTitle>{c.title}</CardTitle>
+                    <CardDescription>
+                      {c.startDate} → {c.endDate}
+                    </CardDescription>
                   </div>
                 </div>
-                <Badge variant={contest.status === 'open' ? 'default' : 'secondary'}>
-                  {contest.status === 'open' ? t.open : t.closed}
+                <Badge variant={c.status === 'open' ? 'default' : 'secondary'}>
+                  {c.status === 'open' ? t.open : t.closed}
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span>{contest.participants} {t.participants}</span>
-                  </div>
-                  <Badge variant="outline">{contest.type}</Badge>
+            <CardContent className="flex items-center justify-between">
+              <div className="flex items-center gap-6 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span>{c.participants} {t.participants}</span>
                 </div>
-                {/* <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toast.success(t.downloaded)}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  {t.exportResults}
-                </Button> */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toast.success(t.downloaded)}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  {t.exportResults}
-                </Button>
+                <Badge variant="outline">{c.type}</Badge>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => toast.success(t.downloaded)}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {t.exportResults}
+              </Button>
             </CardContent>
           </Card>
         ))}

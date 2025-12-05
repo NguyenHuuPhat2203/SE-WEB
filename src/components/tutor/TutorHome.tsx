@@ -262,7 +262,7 @@ export function TutorHome({ onNavigate, language, user }: any) {
           <div className="flex flex-col items-center">
             <Avatar className="h-24 w-24 mb-3">
               <AvatarFallback className="bg-gradient-to-br from-purple-400 to-indigo-400 text-white text-3xl">
-                {user.name.charAt(0)}
+                {user.name}
               </AvatarFallback>
             </Avatar>
             <p className="text-center mb-1">{user.name}</p>
