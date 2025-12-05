@@ -33,11 +33,14 @@ const contestController = require('./controllers/contestController');
 const sessionController = require('./controllers/sessionController');
 const tutorController = require('./controllers/tutorController');
 const qaController = require('./controllers/qaController');
+const userController = require('./controllers/userController')
 const app = express();
 const PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
+
+app.patch('/api/users/:bknetId/profile', userController.updateProfile);
 
 app.post('/api/login', authController.login);
 app.post('/api/register', authController.register);
@@ -52,26 +55,51 @@ app.get('/api/users', (req, res) => {
 });
 
 // Contests
-app.get('/api/contests', contestController.list);
-app.get('/api/contests/:id', contestController.detail);
-app.post('/api/contests/:id/register', contestController.register);
+app.get('/api/contests', (req, res) => contestController.list(req, res));
+app.get('/api/contests/:id', (req, res) => contestController.detail(req, res));
+app.post('/api/contests/:id/register', (req, res) => contestController.register(req, res));
+app.post('/api/addcontest', (req, res) => contestController.create(req, res));
+
 
 // Sessions
-app.get('/api/sessions', sessionController.list);           // ?type=my|upcoming|ongoing
-app.get('/api/sessions/:id', sessionController.detail);
-app.post('/api/sessions/:id/join', sessionController.join);
+app.get('/api/sessions', (req, res) => sessionController.list(req, res));
+app.get('/api/sessions/:id', (req, res) => sessionController.detail(req, res));
+app.post('/api/sessions/:id/join', (req, res) => sessionController.join(req, res));
+app.post('/api/addsession', (req, res) => sessionController.create(req, res));
+
 
 // Tutors
-app.get('/api/tutors', tutorController.list);
-app.get('/api/tutors/departments', tutorController.departments);
-app.get('/api/tutors/specializations', tutorController.specializations);
-app.get('/api/tutors/suggestions', tutorController.suggestions);
-app.get('/api/tutors/:id', tutorController.detail);
+app.get('/api/tutors', (req, res) => tutorController.list(req, res));
+app.get('/api/tutors/departments', (req, res) => tutorController.departments(req, res));
+app.get('/api/tutors/specializations', (req, res) => tutorController.specializations(req, res));
+app.get('/api/tutors/suggestions', (req, res) => tutorController.suggestions(req, res));
+app.get('/api/tutors/:id', (req, res) => tutorController.detail(req, res));
 
 // Q&A
-app.get('/api/questions', qaController.list);
-app.post('/api/questions', qaController.create);
-app.get('/api/questions/:id', qaController.detail);
+app.get('/api/getquestions', (req, res) => qaController.list(req, res));
+app.post('/api/addquestion', (req, res) => qaController.create(req, res));
+app.get('/api/questions/:id', (req, res) => qaController.detail(req, res));
+app.post('/api/questions/:id/answers', (req, res) => qaController.createAnswer(req, res));
+
+const notificationController = require('./controllers/notificationController');
+
+app.get('/api/notifications', (req, res) => notificationController.list(req, res));
+app.post('/api/addnotification', (req, res) => notificationController.create(req, res));
+app.patch('/api/notifications/:id/read', (req, res) => notificationController.markRead(req, res));
+
+const courseRequestController = require('./controllers/courseRequestController');
+
+// ---- Course ----
+app.get('/api/courses', courseRequestController.listCourses);
+app.post('/api/courses', courseRequestController.addCourse);
+app.put('/api/courses/:id', courseRequestController.updateCourse);
+app.delete('/api/courses/:id', courseRequestController.deleteCourse);
+
+// ---- Course Requests ----
+app.get('/api/course-requests', courseRequestController.listRequests);
+app.post('/api/addcourse-request', courseRequestController.createRequest); // ✅ NEW
+app.patch('/api/course-requests/:id/approve', courseRequestController.approveRequest);
+app.patch('/api/course-requests/:id/reject', courseRequestController.rejectRequest);
 
 app.listen(PORT, () => {
   console.log(`Backend running at http://localhost:${PORT}`);

@@ -36,6 +36,46 @@ let users = [
   }),
 ];
 
+const student = users.find(u => u.bknetId === 'student');
+if (student) {
+  // unread notification
+  student.addNotification({
+    title: 'Test Notification - Unread',
+    content: 'This is a test notification that is unread.',
+    type: 'system',
+    senderBknetId: 'tutor',
+  });
+
+  // read notification
+  const readNoti = student.addNotification({
+    title: 'Test Notification - Read',
+    content: 'This is a test notification that has been read.',
+    type: 'system',
+    senderBknetId: 'tutor',
+  });
+  readNoti.unread = false;
+}
+
+const tutor = users.find(u => u.bknetId === 'tutor');
+if (tutor) {
+  // unread notification
+  tutor.addNotification({
+    title: 'Test Notification - Unread',
+    content: 'This is a test notification that is unread.',
+    type: 'system',
+    senderBknetId: 'tutor',
+  });
+
+  // read notification
+  const readNoti = tutor.addNotification({
+    title: 'Test Notification - Read',
+    content: 'This is a test notification that has been read.',
+    type: 'system',
+    senderBknetId: 'tutor',
+  });
+  readNoti.unread = false;
+}
+
 class UserRepository {
   findByBknetId(bknetId) {
     return users.find((u) => u.bknetId === bknetId) || null;
@@ -57,6 +97,43 @@ class UserRepository {
     const user = this.findByBknetId(bknetId);
     if (!user) return null;
     user.password = newPassword;
+    return user;
+  }
+
+  addNotificationByBknetId(receiverBknetId, { title, content, type, senderBknetId }) {
+    const receiver = this.findByBknetId(receiverBknetId);
+    if (!receiver) {
+      throw new Error(`USER_NOT_FOUND: ${receiverBknetId}`);
+    }
+    const noti = receiver.addNotification({
+      title,
+      content,
+      type,
+      senderBknetId,
+    });
+    return noti;
+  }
+
+  getNotificationsByBknetId(bknetId) {
+    const user = this.findByBknetId(bknetId);
+    return user.notifications;
+  }
+
+  markReadByBknetId(bknetId, notiId) {
+    const user = this.findByBknetId(bknetId);
+    user.markNotificationRead(notiId);
+  }
+
+  getUnreadCount(bknetId) {
+    const user = this.findByBknetId(bknetId);
+    return user.notifications.filter((n) => n.unread).length;
+  }
+
+  updateProfile(bknetId, data) {
+    const user = this.findByBknetId(bknetId);
+    if (!user) return null;
+    user.updateProfileInfo(data);
+    // console.log(user.isProfileComplete)
     return user;
   }
 
