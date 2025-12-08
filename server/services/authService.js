@@ -1,62 +1,109 @@
 // services/authService.js
-const userRepository = require('../repositories/userRepository');
+const userRepository = require("../repositories/userRepositoryMongo");
+const {
+  validateRegistration,
+  validateBknetId,
+  sanitizeString,
+} = require("../utils/validation");
+const { generateToken } = require("../utils/jwt");
 
 class AuthService {
-  register({ firstName, lastName, bknetId, password, role }) {
-    if (!firstName || !lastName || !bknetId || !password) {
-      throw new Error('MISSING_FIELDS');
-    }
-
-    const existing = userRepository.findByBknetId(bknetId);
-    if (existing) {
-      throw new Error('USER_EXISTS');
-    }
-
-    const newUser = userRepository.create({
+  async register({ firstName, lastName, bknetId, password, role }) {
+    // Validate input
+    const validation = validateRegistration({
       firstName,
       lastName,
       bknetId,
       password,
       role,
     });
+    if (!validation.valid) {
+      const error = new Error("VALIDATION_ERROR");
+      error.errors = validation.errors;
+      throw error;
+    }
 
-    return newUser;
+    // Check if user exists
+    const existing = await userRepository.findByBknetId(bknetId);
+    if (existing) {
+      throw new Error("USER_EXISTS");
+    }
+
+    // Create user (password will be hashed in UserModel pre-save hook)
+    const newUser = await userRepository.create({
+      firstName: sanitizeString(firstName),
+      lastName: sanitizeString(lastName),
+      bknetId: sanitizeString(bknetId).toLowerCase(),
+      password: password, // Will be hashed by mongoose middleware
+      role: role || "student",
+    });
+
+    // Generate JWT token
+    const token = generateToken(newUser);
+
+    return { user: newUser, token };
   }
 
-  login({ bknetId, password }) {
+  async login({ bknetId, password }) {
     if (!bknetId || !password) {
-      throw new Error('MISSING_FIELDS');
+      throw new Error("MISSING_FIELDS");
     }
 
-    const user = userRepository.findByBknetId(bknetId);
-    if (!user || user.password !== password) {
-      throw new Error('INVALID_CREDENTIALS');
+    console.log("[LOGIN] Attempting login for:", bknetId);
+
+    // Find user with password field
+    const { UserModel } = require("../db/models");
+    const user = await UserModel.findOne({
+      bknetId: bknetId.toLowerCase(),
+    }).select("+password");
+
+    console.log("[LOGIN] User found:", !!user);
+    if (!user) {
+      console.log("[LOGIN] User not found in database");
+      throw new Error("INVALID_CREDENTIALS");
     }
 
+    console.log("[LOGIN] Testing password comparison...");
+    // Verify password using model method
+    const isValid = await user.comparePassword(password);
+    console.log("[LOGIN] Password valid:", isValid);
+
+    if (!isValid) {
+      console.log("[LOGIN] Password comparison failed");
+      throw new Error("INVALID_CREDENTIALS");
+    }
+
+    // Generate JWT token
+    const token = generateToken(user);
+
+    // Remove password from response
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    return { user: userObj, token };
+  }
+
+  async findAccount({ bknetId }) {
+    if (!bknetId) throw new Error("MISSING_FIELDS");
+    const user = await userRepository.findByBknetId(bknetId);
+    if (!user) throw new Error("USER_NOT_FOUND");
     return user;
   }
-  findAccount({ bknetId }) {
-  if (!bknetId) throw new Error('MISSING_FIELDS');
-  const user = userRepository.findByBknetId(bknetId);
-  if (!user) throw new Error('USER_NOT_FOUND');
-  return user;
-}
 
-resetPassword({ bknetId, captcha, newPassword }) {
-  if (!bknetId || !captcha || !newPassword) {
-    throw new Error('MISSING_FIELDS');
-  }
+  async resetPassword({ bknetId, captcha, newPassword }) {
+    if (!bknetId || !captcha || !newPassword) {
+      throw new Error("MISSING_FIELDS");
+    }
 
-  // demo: captcha cố định CAPTCHA
-  if (captcha !== 'CAPTCHA') {
-    throw new Error('INVALID_CAPTCHA');
-  }
+    // demo: captcha cố định CAPTCHA
+    if (captcha !== "CAPTCHA") {
+      throw new Error("INVALID_CAPTCHA");
+    }
 
-  const user = userRepository.updatePassword(bknetId, newPassword);
-  if (!user) throw new Error('USER_NOT_FOUND');
+    const user = await userRepository.updatePassword(bknetId, newPassword);
+    if (!user) throw new Error("USER_NOT_FOUND");
     return user;
   }
-
 }
 
 module.exports = new AuthService();

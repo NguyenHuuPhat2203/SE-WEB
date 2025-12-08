@@ -1,43 +1,52 @@
-import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Alert, AlertDescription } from '../ui/alert';
-import { AlertCircle, GraduationCap } from 'lucide-react';
-import type { Language } from '../../App';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Alert, AlertDescription } from "../ui/alert";
+import { AlertCircle, GraduationCap } from "lucide-react";
 
-interface RegisterScreenProps {
-  onNavigate: (screen: string) => void;
-  language: Language;
-}
+type Language = "en" | "vi";
 
-export function RegisterScreen({ onNavigate, language }: RegisterScreenProps) {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [bknetId, setBknetId] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+export function RegisterScreen() {
+  const navigate = useNavigate();
+  const [language] = useState<Language>("en");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [bknetId, setBknetId] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
 
   const t = {
-    title: language === 'en' ? 'Sign Up' : 'Đăng ký',
-    subtitle: language === 'en' ? "It's quick and easy." : 'Nhanh chóng và dễ dàng.',
-    firstName: language === 'en' ? 'First name' : 'Tên',
-    lastName: language === 'en' ? 'Last name' : 'Họ',
-    bknetId: 'BKnetID',
-    password: language === 'en' ? 'New password' : 'Mật khẩu mới',
-    confirmPassword: language === 'en' ? 'Confirm password' : 'Xác nhận mật khẩu',
-    signUp: language === 'en' ? 'Sign Up' : 'Đăng ký',
-    alreadyHaveAccount: language === 'en' ? 'Already have an account?' : 'Đã có tài khoản?',
-    passwordMismatch: language === 'en' ? 'Passwords do not match' : 'Mật khẩu không khớp',
-    required: language === 'en' ? 'Please fill in all fields' : 'Vui lòng điền đầy đủ thông tin',
-    success: language === 'en' ? 'Registration successful! Redirecting to login...' : 'Đăng ký thành công! Đang chuyển đến đăng nhập...',
-    terms: language === 'en'
-      ? 'By clicking Sign Up, you agree to our Terms, Privacy Policy and Cookies Policy.'
-      : 'Bằng việc nhấn Đăng ký, bạn đồng ý với Điều khoản, Chính sách quyền riêng tư và Chính sách cookie của chúng tôi.',
+    title: language === "en" ? "Sign Up" : "Đăng ký",
+    subtitle:
+      language === "en" ? "It's quick and easy." : "Nhanh chóng và dễ dàng.",
+    firstName: language === "en" ? "First name" : "Tên",
+    lastName: language === "en" ? "Last name" : "Họ",
+    bknetId: "BKnetID",
+    password: language === "en" ? "New password" : "Mật khẩu mới",
+    confirmPassword:
+      language === "en" ? "Confirm password" : "Xác nhận mật khẩu",
+    signUp: language === "en" ? "Sign Up" : "Đăng ký",
+    alreadyHaveAccount:
+      language === "en" ? "Already have an account?" : "Đã có tài khoản?",
+    passwordMismatch:
+      language === "en" ? "Passwords do not match" : "Mật khẩu không khớp",
+    required:
+      language === "en"
+        ? "Please fill in all fields"
+        : "Vui lòng điền đầy đủ thông tin",
+    success:
+      language === "en"
+        ? "Registration successful! Redirecting to login..."
+        : "Đăng ký thành công! Đang chuyển đến đăng nhập...",
+    terms:
+      language === "en"
+        ? "By clicking Sign Up, you agree to our Terms, Privacy Policy and Cookies Policy."
+        : "Bằng việc nhấn Đăng ký, bạn đồng ý với Điều khoản, Chính sách quyền riêng tư và Chính sách cookie của chúng tôi.",
   };
   const handleRegister = async () => {
-    setError('');
+    setError("");
 
     // Validate FE trước
     if (
@@ -57,15 +66,15 @@ export function RegisterScreen({ onNavigate, language }: RegisterScreenProps) {
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:3001/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstName,
           lastName,
-          bknetId,          // trùng với BE: bknetId
+          bknetId, // trùng với BE: bknetId
           password,
-          role: 'student',  // nếu BE có default thì cũng được, gửi luôn cho rõ
+          role: "student", // nếu BE có default thì cũng được, gửi luôn cho rõ
         }),
       });
 
@@ -76,25 +85,26 @@ export function RegisterScreen({ onNavigate, language }: RegisterScreenProps) {
         // message là do BE trả về, ví dụ "BKNetID already exists"
         setError(
           data.message ||
-          (language === 'en'
-            ? 'Registration failed'
-            : 'Đăng ký thất bại')
+            (language === "en" ? "Registration failed" : "Đăng ký thất bại")
         );
         return;
       }
 
-      // Đăng ký OK
+      // Đăng ký OK - Tự động login bằng cách lưu token
+      if (data.data && data.data.token) {
+        localStorage.setItem("token", data.data.token);
+      }
+
       alert(t.success);
-      onNavigate('login');
+      navigate("/login");
     } catch (err) {
       setError(
-        language === 'en'
-          ? 'Cannot connect to server'
-          : 'Không thể kết nối server'
+        language === "en"
+          ? "Cannot connect to server"
+          : "Không thể kết nối server"
       );
     }
   };
-
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -169,7 +179,7 @@ export function RegisterScreen({ onNavigate, language }: RegisterScreenProps) {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
+                onKeyDown={(e) => e.key === "Enter" && handleRegister()}
                 placeholder={t.confirmPassword}
                 className="h-12 px-4 bg-gray-50 border-gray-300"
               />
@@ -187,12 +197,9 @@ export function RegisterScreen({ onNavigate, language }: RegisterScreenProps) {
             </Button>
 
             <div className="text-center pt-4 border-t border-gray-200">
-              <button
-                onClick={() => onNavigate('login')}
-                className="text-purple-600 hover:underline"
-              >
+              <Link to="/login" className="text-purple-600 hover:underline">
                 {t.alreadyHaveAccount}
-              </button>
+              </Link>
             </div>
           </div>
         </div>

@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Alert, AlertDescription } from '../ui/alert';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Alert, AlertDescription } from "../ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,71 +13,70 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../ui/alert-dialog';
-import { AlertCircle, GraduationCap } from 'lucide-react';
-import type { Language, UserRole } from '../../App';
+} from "../ui/alert-dialog";
+import { AlertCircle, GraduationCap } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
-interface LoginScreenProps {
-  onLogin: (bknetId: string, password: string) => void;
-  onNavigate: (screen: string) => void;
-  language: Language;
-}
+type Language = "en" | "vi";
+type UserRole = "student" | "tutor" | "cod" | "ctsv";
 
-export function LoginScreen({ onLogin, onNavigate, language }: LoginScreenProps) {
-  const [bknetId, setBknetId] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+export function LoginScreen() {
+  const { login } = useAuth();
+  const [language] = useState<Language>("en");
+  const [bknetId, setBknetId] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>('student');
+  const [selectedRole, setSelectedRole] = useState<UserRole>("student");
 
   const t = {
-    title: 'HCMUT',
-    subtitle: language === 'en' ? 'Tutor Support System' : 'Hệ thống Cố vấn học tập',
-    tagline: language === 'en'
-      ? 'Connect with tutors and achieve your academic goals'
-      : 'Kết nối với cố vấn và đạt được mục tiêu học tập',
-    login: language === 'en' ? 'Log In' : 'Đăng nhập',
-    createAccount: language === 'en' ? 'Register' : 'Tạo tài khoản mới',
-    bknetId: 'BKnetID',
-    password: language === 'en' ? 'Password' : 'Mật khẩu',
-    forgotPassword: language === 'en' ? 'Forgotten password?' : 'Quên mật khẩu?',
-    wrongInfo: language === 'en' ? 'Wrong information' : 'Sai thông tin',
-    errorDesc: language === 'en' ? 'The BKnetID or password you entered is incorrect.' : 'BKnetID hoặc mật khẩu bạn nhập không đúng.',
-    tryAgain: language === 'en' ? 'Try again' : 'Thử lại',
-    recoverPassword: language === 'en' ? 'Recover password' : 'Khôi phục mật khẩu',
-    loginAs: language === 'en' ? 'Demo - Login as:' : 'Demo - Đăng nhập với vai trò:',
+    title: "HCMUT",
+    subtitle:
+      language === "en" ? "Tutor Support System" : "Hệ thống Cố vấn học tập",
+    tagline:
+      language === "en"
+        ? "Connect with tutors and achieve your academic goals"
+        : "Kết nối với cố vấn và đạt được mục tiêu học tập",
+    login: language === "en" ? "Log In" : "Đăng nhập",
+    createAccount: language === "en" ? "Register" : "Tạo tài khoản mới",
+    bknetId: "BKnetID",
+    password: language === "en" ? "Password" : "Mật khẩu",
+    forgotPassword:
+      language === "en" ? "Forgotten password?" : "Quên mật khẩu?",
+    wrongInfo: language === "en" ? "Wrong information" : "Sai thông tin",
+    errorDesc:
+      language === "en"
+        ? "The BKnetID or password you entered is incorrect."
+        : "BKnetID hoặc mật khẩu bạn nhập không đúng.",
+    tryAgain: language === "en" ? "Try again" : "Thử lại",
+    recoverPassword:
+      language === "en" ? "Recover password" : "Khôi phục mật khẩu",
+    loginAs:
+      language === "en" ? "Demo - Login as:" : "Demo - Đăng nhập với vai trò:",
   };
 
   const handleLogin = async () => {
-    setError('');
+    setError("");
 
     if (!bknetId.trim() || !password.trim()) {
-      setError(language === 'en' ? 'Please fill in all fields' : 'Vui lòng điền đầy đủ thông tin');
+      setError(
+        language === "en"
+          ? "Please fill in all fields"
+          : "Vui lòng điền đầy đủ thông tin"
+      );
       return;
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bknetId, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        setError(data.message || (language === 'en' ? 'Login failed' : 'Đăng nhập thất bại'));
-        setShowErrorDialog(true);
-        return;
-      }
-
-      // dùng role từ server
-      onLogin(bknetId, password);
-    } catch (err) {
-      setError(language === 'en' ? 'Cannot connect to server' : 'Không thể kết nối server');
+      await login(bknetId, password);
+    } catch (err: any) {
+      setError(
+        err.message ||
+          (language === "en" ? "Login failed" : "Đăng nhập thất bại")
+      );
+      setShowErrorDialog(true);
     }
   };
-
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -124,7 +124,7 @@ export function LoginScreen({ onLogin, onNavigate, language }: LoginScreenProps)
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                   placeholder={t.password}
                   className="h-12 px-4 bg-gray-50 border-gray-300"
                 />
@@ -138,41 +138,53 @@ export function LoginScreen({ onLogin, onNavigate, language }: LoginScreenProps)
               </Button>
 
               <div className="text-center">
-                <button
-                  onClick={() => onNavigate('recover-password')}
+                <Link
+                  to="/recover-password"
                   className="text-purple-600 hover:underline"
                 >
                   {t.forgotPassword}
-                </button>
+                </Link>
               </div>
 
               <div className="border-t border-gray-300 pt-4">
-                <Button
-                  onClick={() => onNavigate('register')}
-                  variant="outline"
-                  className="mx-auto block px-8 h-12 border-purple-600 text-purple-600 hover:bg-purple-50"
-                >
-                  {t.createAccount}
-                </Button>
+                <Link to="/register">
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 border-purple-600 text-purple-600 hover:bg-purple-50"
+                  >
+                    {t.createAccount}
+                  </Button>
+                </Link>
               </div>
 
               {/* Demo role selector */}
               <div className="pt-4 border-t border-gray-200">
-                <Label className="text-xs text-gray-500 block mb-2">{t.loginAs}</Label>
+                <Label className="text-xs text-gray-500 block mb-2">
+                  {t.loginAs}
+                </Label>
                 <div className="grid grid-cols-4 gap-2">
-                  {(['student', 'tutor', 'cod', 'ctsv'] as UserRole[]).map((role) => (
-                    <button
-                      key={role}
-                      className={`px-2 py-1.5 rounded text-xs transition-colors ${selectedRole === role
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  {(["student", "tutor", "cod", "ctsv"] as UserRole[]).map(
+                    (role) => (
+                      <button
+                        key={role}
+                        className={`px-2 py-1.5 rounded text-xs transition-colors ${
+                          selectedRole === role
+                            ? "bg-purple-600 text-white"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
-                      onClick={() => setSelectedRole(role)}
-                      type="button"
-                    >
-                      {role === 'student' ? 'Student' : role === 'tutor' ? 'Tutor' : role === 'cod' ? 'CoD' : 'CTSV'}
-                    </button>
-                  ))}
+                        onClick={() => setSelectedRole(role)}
+                        type="button"
+                      >
+                        {role === "student"
+                          ? "Student"
+                          : role === "tutor"
+                          ? "Tutor"
+                          : role === "cod"
+                          ? "CoD"
+                          : "CTSV"}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -195,9 +207,9 @@ export function LoginScreen({ onLogin, onNavigate, language }: LoginScreenProps)
             <AlertDialogCancel onClick={() => setShowErrorDialog(false)}>
               {t.tryAgain}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => onNavigate('recover-password')}>
-              {t.recoverPassword}
-            </AlertDialogAction>
+            <Link to="/recover-password">
+              <AlertDialogAction>{t.recoverPassword}</AlertDialogAction>
+            </Link>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

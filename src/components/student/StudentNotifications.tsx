@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { Filter, Mail, MailOpen, Plus } from 'lucide-react';
-import { Card, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
+import { useEffect, useState } from "react";
+import { Filter, Mail, MailOpen, Plus } from "lucide-react";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -13,10 +13,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '../ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { toast } from 'sonner';
-import type { Language } from '../../App';
+} from "../ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { toast } from "sonner";
+import { useLayoutContext } from "../../hooks/useLayoutContext";
 
 interface Notification {
   id: number;
@@ -24,34 +30,36 @@ interface Notification {
   senderBknetId?: string;
   time: string;
   unread: boolean;
-  type: 'course' | 'consultation' | 'contest' | 'system';
+  type: "course" | "consultation" | "contest" | "system";
   content: string;
 }
 
 interface StudentNotificationsProps {
-  language: Language;
-  user: { bknetId: string };
   allowCompose?: boolean;
 }
 
-export function StudentNotifications({ language, user, allowCompose }: StudentNotificationsProps) {
+export function StudentNotifications({
+  allowCompose,
+}: StudentNotificationsProps) {
+  const { language, user } = useLayoutContext();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
-  const [filter, setFilter] = useState('all');
+  const [selectedNotification, setSelectedNotification] =
+    useState<Notification | null>(null);
+  const [filter, setFilter] = useState("all");
   const [composeOpen, setComposeOpen] = useState(false);
-  const [composeTo, setComposeTo] = useState('');
-  const [composeSubject, setComposeSubject] = useState('');
-  const [composeContent, setComposeContent] = useState('');
+  const [composeTo, setComposeTo] = useState("");
+  const [composeSubject, setComposeSubject] = useState("");
+  const [composeContent, setComposeContent] = useState("");
 
   const t = {
-    title: language === 'en' ? 'Notifications' : 'Thông báo',
-    compose: language === 'en' ? 'Compose' : 'Soạn thông báo',
-    to: language === 'en' ? 'To (BkNet ID)' : 'Đến (BkNet ID)',
-    subject: language === 'en' ? 'Subject' : 'Tiêu đề',
-    content: language === 'en' ? 'Content' : 'Nội dung',
-    send: language === 'en' ? 'Send' : 'Gửi',
-    cancel: language === 'en' ? 'Cancel' : 'Hủy',
-    filterType: language === 'en' ? 'Filter by type' : 'Lọc theo loại',
+    title: language === "en" ? "Notifications" : "Thông báo",
+    compose: language === "en" ? "Compose" : "Soạn thông báo",
+    to: language === "en" ? "To (BkNet ID)" : "Đến (BkNet ID)",
+    subject: language === "en" ? "Subject" : "Tiêu đề",
+    content: language === "en" ? "Content" : "Nội dung",
+    send: language === "en" ? "Send" : "Gửi",
+    cancel: language === "en" ? "Cancel" : "Hủy",
+    filterType: language === "en" ? "Filter by type" : "Lọc theo loại",
   };
 
   useEffect(() => {
@@ -59,20 +67,22 @@ export function StudentNotifications({ language, user, allowCompose }: StudentNo
       .then((res) => res.json())
       .then((json) => {
         if (json.success) setNotifications(json.data);
-        else toast.error('Failed to load notifications');
+        else toast.error("Failed to load notifications");
       })
-      .catch(() => toast.error('Cannot connect to backend'));
+      .catch(() => toast.error("Cannot connect to backend"));
   }, [user.bknetId]);
 
   const handleNotificationClick = (notification: Notification) => {
     if (notification.unread) {
       fetch(`http://localhost:3001/api/notifications/${notification.id}/read`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bknetId: user.bknetId }),
       });
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notification.id ? { ...n, unread: false } : n))
+        prev.map((n) =>
+          n.id === notification.id ? { ...n, unread: false } : n
+        )
       );
     }
     setSelectedNotification(notification);
@@ -80,7 +90,7 @@ export function StudentNotifications({ language, user, allowCompose }: StudentNo
 
   const handleSend = async () => {
     if (!composeTo.trim() || !composeSubject.trim()) {
-      toast.error('Missing recipient or subject');
+      toast.error("Missing recipient or subject");
       return;
     }
 
@@ -89,29 +99,32 @@ export function StudentNotifications({ language, user, allowCompose }: StudentNo
       senderBknetId: user.bknetId,
       title: composeSubject.trim(),
       content: composeContent.trim(),
-      type: 'system',
+      type: "system",
     };
 
     try {
-      const res = await fetch('http://localhost:3001/api/addnotification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:3001/api/addnotification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (json.success) {
-        toast.success('Notification sent!');
+        toast.success("Notification sent!");
         setComposeOpen(false);
-        setComposeTo('');
-        setComposeSubject('');
-        setComposeContent('');
-      } else toast.error(json.message || 'Send failed');
+        setComposeTo("");
+        setComposeSubject("");
+        setComposeContent("");
+      } else toast.error(json.message || "Send failed");
     } catch {
-      toast.error('Server error');
+      toast.error("Server error");
     }
   };
 
-  const filtered = filter === 'all' ? notifications : notifications.filter((n) => n.type === filter);
+  const filtered =
+    filter === "all"
+      ? notifications
+      : notifications.filter((n) => n.type === filter);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -131,15 +144,25 @@ export function StudentNotifications({ language, user, allowCompose }: StudentNo
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>{t.to}</Label>
-                  <Input value={composeTo} onChange={(e) => setComposeTo(e.target.value)} />
+                  <Input
+                    value={composeTo}
+                    onChange={(e) => setComposeTo(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>{t.subject}</Label>
-                  <Input value={composeSubject} onChange={(e) => setComposeSubject(e.target.value)} />
+                  <Input
+                    value={composeSubject}
+                    onChange={(e) => setComposeSubject(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>{t.content}</Label>
-                  <Textarea rows={4} value={composeContent} onChange={(e) => setComposeContent(e.target.value)} />
+                  <Textarea
+                    rows={4}
+                    value={composeContent}
+                    onChange={(e) => setComposeContent(e.target.value)}
+                  />
                 </div>
               </div>
               <DialogFooter>
@@ -179,7 +202,9 @@ export function StudentNotifications({ language, user, allowCompose }: StudentNo
               key={n.id}
               onClick={() => handleNotificationClick(n)}
               className={`cursor-pointer transition-colors ${
-                selectedNotification?.id === n.id ? 'border-blue-600 bg-blue-50' : 'hover:bg-gray-50'
+                selectedNotification?.id === n.id
+                  ? "border-blue-600 bg-blue-50"
+                  : "hover:bg-gray-50"
               }`}
             >
               <CardContent className="p-4 flex items-start gap-3">
@@ -203,16 +228,21 @@ export function StudentNotifications({ language, user, allowCompose }: StudentNo
           {selectedNotification ? (
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-lg font-semibold mb-2">{selectedNotification.title}</h2>
+                <h2 className="text-lg font-semibold mb-2">
+                  {selectedNotification.title}
+                </h2>
                 <p className="text-sm text-gray-600 mb-2">
-                  From: {selectedNotification.senderBknetId} • {selectedNotification.time}
+                  From: {selectedNotification.senderBknetId} •{" "}
+                  {selectedNotification.time}
                 </p>
                 <p className="text-gray-700">{selectedNotification.content}</p>
               </CardContent>
             </Card>
           ) : (
             <Card className="h-full flex items-center justify-center">
-              <CardContent className="text-gray-500 text-sm">Select a notification to view</CardContent>
+              <CardContent className="text-gray-500 text-sm">
+                Select a notification to view
+              </CardContent>
             </Card>
           )}
         </div>

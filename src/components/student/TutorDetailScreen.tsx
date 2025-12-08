@@ -1,130 +1,213 @@
-import { useState } from 'react';
-import { Star, Calendar, Mail, Phone, MapPin, Clock, Award, BookOpen, ChevronLeft, MessageSquare } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import type { Language } from '../../App';
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Star,
+  Calendar,
+  Mail,
+  Phone,
+  MapPin,
+  Clock,
+  Award,
+  BookOpen,
+  ChevronLeft,
+  MessageSquare,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { useLayoutContext } from "../../hooks/useLayoutContext";
 
-interface TutorDetailScreenProps {
-  language: Language;
-  onBack: () => void;
-  tutorId: number;
-}
+interface TutorDetailScreenProps {}
 
 const mockTutorDetails = {
   1: {
     id: 1,
-    name: 'Dr. Tran Thi B',
-    department: 'Computer Science',
-    specialization: ['Data Structures', 'Algorithms', 'Programming'],
+    name: "Dr. Tran Thi B",
+    department: "Computer Science",
+    specialization: ["Data Structures", "Algorithms", "Programming"],
     rating: 4.8,
     reviews: 24,
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-    email: 'tran.thi.b@hcmut.edu.vn',
-    phone: '+84 123 456 789',
-    office: 'Room 305, Building A4',
-    bio: 'Experienced professor with 10+ years in teaching data structures and algorithms. Passionate about helping students understand complex concepts through practical examples.',
+    avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+    email: "tran.thi.b@hcmut.edu.vn",
+    phone: "+84 123 456 789",
+    office: "Room 305, Building A4",
+    bio: "Experienced professor with 10+ years in teaching data structures and algorithms. Passionate about helping students understand complex concepts through practical examples.",
     education: [
-      'Ph.D. in Computer Science - Stanford University (2012)',
-      'M.Sc. in Computer Science - MIT (2008)',
-      'B.Sc. in Computer Science - HCMUT (2006)',
+      "Ph.D. in Computer Science - Stanford University (2012)",
+      "M.Sc. in Computer Science - MIT (2008)",
+      "B.Sc. in Computer Science - HCMUT (2006)",
     ],
-    courses: ['Data Structures', 'Advanced Algorithms', 'Programming Fundamentals', 'Discrete Mathematics'],
-    awards: ['Best Teacher Award 2023', 'Outstanding Research Award 2022', 'Excellence in Teaching 2021'],
+    courses: [
+      "Data Structures",
+      "Advanced Algorithms",
+      "Programming Fundamentals",
+      "Discrete Mathematics",
+    ],
+    awards: [
+      "Best Teacher Award 2023",
+      "Outstanding Research Award 2022",
+      "Excellence in Teaching 2021",
+    ],
     availability: [
-      { day: 'Monday', times: ['10:00 AM - 12:00 PM', '2:00 PM - 4:00 PM'] },
-      { day: 'Wednesday', times: ['10:00 AM - 12:00 PM', '3:00 PM - 5:00 PM'] },
-      { day: 'Friday', times: ['9:00 AM - 11:00 AM', '2:00 PM - 4:00 PM'] },
+      { day: "Monday", times: ["10:00 AM - 12:00 PM", "2:00 PM - 4:00 PM"] },
+      { day: "Wednesday", times: ["10:00 AM - 12:00 PM", "3:00 PM - 5:00 PM"] },
+      { day: "Friday", times: ["9:00 AM - 11:00 AM", "2:00 PM - 4:00 PM"] },
     ],
     recentReviews: [
-      { student: 'Nguyen Van A', rating: 5, comment: 'Excellent teaching style, very patient and helpful!', date: '2 days ago' },
-      { student: 'Tran Thi C', rating: 4, comment: 'Great tutor, explains concepts clearly.', date: '1 week ago' },
-      { student: 'Le Van D', rating: 5, comment: 'Highly recommended! Helped me ace my algorithms exam.', date: '2 weeks ago' },
+      {
+        student: "Nguyen Van A",
+        rating: 5,
+        comment: "Excellent teaching style, very patient and helpful!",
+        date: "2 days ago",
+      },
+      {
+        student: "Tran Thi C",
+        rating: 4,
+        comment: "Great tutor, explains concepts clearly.",
+        date: "1 week ago",
+      },
+      {
+        student: "Le Van D",
+        rating: 5,
+        comment: "Highly recommended! Helped me ace my algorithms exam.",
+        date: "2 weeks ago",
+      },
     ],
   },
   2: {
     id: 2,
-    name: 'Dr. Nguyen Van C',
-    department: 'Computer Science',
-    specialization: ['Database', 'Web Development', 'Software Engineering'],
+    name: "Dr. Nguyen Van C",
+    department: "Computer Science",
+    specialization: ["Database", "Web Development", "Software Engineering"],
     rating: 4.6,
     reviews: 18,
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-    email: 'nguyen.van.c@hcmut.edu.vn',
-    phone: '+84 123 456 790',
-    office: 'Room 208, Building A4',
-    bio: 'Specializing in database systems and web development. Industry experience from working at major tech companies.',
+    avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
+    email: "nguyen.van.c@hcmut.edu.vn",
+    phone: "+84 123 456 790",
+    office: "Room 208, Building A4",
+    bio: "Specializing in database systems and web development. Industry experience from working at major tech companies.",
     education: [
-      'Ph.D. in Computer Science - UC Berkeley (2015)',
-      'M.Sc. in Software Engineering - Carnegie Mellon (2011)',
-      'B.Sc. in Computer Science - HCMUT (2009)',
+      "Ph.D. in Computer Science - UC Berkeley (2015)",
+      "M.Sc. in Software Engineering - Carnegie Mellon (2011)",
+      "B.Sc. in Computer Science - HCMUT (2009)",
     ],
-    courses: ['Database Systems', 'Web Development', 'Software Engineering', 'Cloud Computing'],
-    awards: ['Innovation in Teaching 2023', 'Research Excellence Award 2021'],
+    courses: [
+      "Database Systems",
+      "Web Development",
+      "Software Engineering",
+      "Cloud Computing",
+    ],
+    awards: ["Innovation in Teaching 2023", "Research Excellence Award 2021"],
     availability: [
-      { day: 'Tuesday', times: ['10:00 AM - 12:00 PM', '2:00 PM - 4:00 PM'] },
-      { day: 'Thursday', times: ['10:00 AM - 12:00 PM', '3:00 PM - 5:00 PM'] },
+      { day: "Tuesday", times: ["10:00 AM - 12:00 PM", "2:00 PM - 4:00 PM"] },
+      { day: "Thursday", times: ["10:00 AM - 12:00 PM", "3:00 PM - 5:00 PM"] },
     ],
     recentReviews: [
-      { student: 'Pham Van E', rating: 5, comment: 'Very knowledgeable in database systems!', date: '3 days ago' },
-      { student: 'Hoang Thi F', rating: 4, comment: 'Good explanations, very practical examples.', date: '1 week ago' },
+      {
+        student: "Pham Van E",
+        rating: 5,
+        comment: "Very knowledgeable in database systems!",
+        date: "3 days ago",
+      },
+      {
+        student: "Hoang Thi F",
+        rating: 4,
+        comment: "Good explanations, very practical examples.",
+        date: "1 week ago",
+      },
     ],
   },
   3: {
     id: 3,
-    name: 'Dr. Le Thi D',
-    department: 'Computer Science',
-    specialization: ['Machine Learning', 'AI', 'Data Science'],
+    name: "Dr. Le Thi D",
+    department: "Computer Science",
+    specialization: ["Machine Learning", "AI", "Data Science"],
     rating: 4.9,
     reviews: 32,
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop',
-    email: 'le.thi.d@hcmut.edu.vn',
-    phone: '+84 123 456 791',
-    office: 'Room 402, Building A5',
-    bio: 'Leading researcher in machine learning and AI. Published numerous papers in top-tier conferences.',
+    avatar:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
+    email: "le.thi.d@hcmut.edu.vn",
+    phone: "+84 123 456 791",
+    office: "Room 402, Building A5",
+    bio: "Leading researcher in machine learning and AI. Published numerous papers in top-tier conferences.",
     education: [
-      'Ph.D. in Artificial Intelligence - Oxford University (2014)',
-      'M.Sc. in Machine Learning - ETH Zurich (2010)',
-      'B.Sc. in Computer Science - HCMUT (2008)',
+      "Ph.D. in Artificial Intelligence - Oxford University (2014)",
+      "M.Sc. in Machine Learning - ETH Zurich (2010)",
+      "B.Sc. in Computer Science - HCMUT (2008)",
     ],
-    courses: ['Machine Learning', 'Deep Learning', 'Artificial Intelligence', 'Data Science'],
-    awards: ['Best Researcher Award 2023', 'Excellence in Teaching 2022', 'Outstanding Paper Award 2021'],
+    courses: [
+      "Machine Learning",
+      "Deep Learning",
+      "Artificial Intelligence",
+      "Data Science",
+    ],
+    awards: [
+      "Best Researcher Award 2023",
+      "Excellence in Teaching 2022",
+      "Outstanding Paper Award 2021",
+    ],
     availability: [
-      { day: 'Monday', times: ['1:00 PM - 3:00 PM', '4:00 PM - 6:00 PM'] },
-      { day: 'Wednesday', times: ['1:00 PM - 3:00 PM'] },
-      { day: 'Friday', times: ['2:00 PM - 4:00 PM'] },
+      { day: "Monday", times: ["1:00 PM - 3:00 PM", "4:00 PM - 6:00 PM"] },
+      { day: "Wednesday", times: ["1:00 PM - 3:00 PM"] },
+      { day: "Friday", times: ["2:00 PM - 4:00 PM"] },
     ],
     recentReviews: [
-      { student: 'Dao Van G', rating: 5, comment: 'Amazing! Best ML teacher ever!', date: '1 day ago' },
-      { student: 'Bui Thi H', rating: 5, comment: 'Explains complex concepts so well.', date: '4 days ago' },
-      { student: 'Vo Van I', rating: 5, comment: 'Highly recommended for ML students!', date: '1 week ago' },
+      {
+        student: "Dao Van G",
+        rating: 5,
+        comment: "Amazing! Best ML teacher ever!",
+        date: "1 day ago",
+      },
+      {
+        student: "Bui Thi H",
+        rating: 5,
+        comment: "Explains complex concepts so well.",
+        date: "4 days ago",
+      },
+      {
+        student: "Vo Van I",
+        rating: 5,
+        comment: "Highly recommended for ML students!",
+        date: "1 week ago",
+      },
     ],
   },
 };
 
-export function TutorDetailScreen({ language, onBack, tutorId }: TutorDetailScreenProps) {
-  const [consultationMessage, setConsultationMessage] = useState('');
+export function TutorDetailScreen({}: TutorDetailScreenProps) {
+  const { language } = useLayoutContext();
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const tutorId = parseInt(id || "1");
+  const [consultationMessage, setConsultationMessage] = useState("");
 
   const t = {
-    back: language === 'en' ? 'Back' : 'Quay lại',
-    overview: language === 'en' ? 'Overview' : 'Tổng quan',
-    reviews: language === 'en' ? 'Reviews' : 'Đánh giá',
-    schedule: language === 'en' ? 'Schedule' : 'Lịch trình',
-    contact: language === 'en' ? 'Contact Information' : 'Thông tin liên hệ',
-    education: language === 'en' ? 'Education' : 'Học vấn',
-    courses: language === 'en' ? 'Courses Teaching' : 'Môn học giảng dạy',
-    awards: language === 'en' ? 'Awards & Recognition' : 'Giải thưởng & Vinh danh',
-    availability: language === 'en' ? 'Availability' : 'Lịch rảnh',
-    requestConsultation: language === 'en' ? 'Request Consultation' : 'Yêu cầu tư vấn',
-    sendRequest: language === 'en' ? 'Send Request' : 'Gửi yêu cầu',
-    message: language === 'en' ? 'Message' : 'Tin nhắn',
-    messagePlaceholder: language === 'en' ? 'Describe what you need help with...' : 'Mô tả nội dung bạn cần tư vấn...',
-    rating: language === 'en' ? 'rating' : 'đánh giá',
-    reviewsCount: language === 'en' ? 'reviews' : 'đánh giá',
+    back: language === "en" ? "Back" : "Quay lại",
+    overview: language === "en" ? "Overview" : "Tổng quan",
+    reviews: language === "en" ? "Reviews" : "Đánh giá",
+    schedule: language === "en" ? "Schedule" : "Lịch trình",
+    contact: language === "en" ? "Contact Information" : "Thông tin liên hệ",
+    education: language === "en" ? "Education" : "Học vấn",
+    courses: language === "en" ? "Courses Teaching" : "Môn học giảng dạy",
+    awards:
+      language === "en" ? "Awards & Recognition" : "Giải thưởng & Vinh danh",
+    availability: language === "en" ? "Availability" : "Lịch rảnh",
+    requestConsultation:
+      language === "en" ? "Request Consultation" : "Yêu cầu tư vấn",
+    sendRequest: language === "en" ? "Send Request" : "Gửi yêu cầu",
+    message: language === "en" ? "Message" : "Tin nhắn",
+    messagePlaceholder:
+      language === "en"
+        ? "Describe what you need help with..."
+        : "Mô tả nội dung bạn cần tư vấn...",
+    rating: language === "en" ? "rating" : "đánh giá",
+    reviewsCount: language === "en" ? "reviews" : "đánh giá",
   };
 
   const tutor = mockTutorDetails[tutorId as keyof typeof mockTutorDetails];
@@ -132,7 +215,7 @@ export function TutorDetailScreen({ language, onBack, tutorId }: TutorDetailScre
   if (!tutor) {
     return (
       <div className="p-6 max-w-7xl mx-auto">
-        <Button variant="ghost" onClick={onBack} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
           <ChevronLeft className="h-4 w-4 mr-2" />
           {t.back}
         </Button>
@@ -143,7 +226,7 @@ export function TutorDetailScreen({ language, onBack, tutorId }: TutorDetailScre
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <Button variant="ghost" onClick={onBack} className="mb-6">
+      <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6">
         <ChevronLeft className="h-4 w-4 mr-2" />
         {t.back}
       </Button>
@@ -165,12 +248,18 @@ export function TutorDetailScreen({ language, onBack, tutorId }: TutorDetailScre
                 <div className="flex items-center gap-1">
                   <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   <span className="text-xl">{tutor.rating}</span>
-                  <span className="text-gray-500">({tutor.reviews} {t.reviewsCount})</span>
+                  <span className="text-gray-500">
+                    ({tutor.reviews} {t.reviewsCount})
+                  </span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 {tutor.specialization.map((spec, idx) => (
-                  <Badge key={idx} variant="outline" className="border-purple-300 bg-purple-50 text-purple-700">
+                  <Badge
+                    key={idx}
+                    variant="outline"
+                    className="border-purple-300 bg-purple-50 text-purple-700"
+                  >
                     {spec}
                   </Badge>
                 ))}
@@ -224,7 +313,10 @@ export function TutorDetailScreen({ language, onBack, tutorId }: TutorDetailScre
                 <CardContent>
                   <ul className="space-y-2">
                     {tutor.education.map((edu, idx) => (
-                      <li key={idx} className="text-gray-700 flex items-start gap-2">
+                      <li
+                        key={idx}
+                        className="text-gray-700 flex items-start gap-2"
+                      >
                         <span className="text-purple-600 mt-1.5">•</span>
                         {edu}
                       </li>
@@ -244,7 +336,11 @@ export function TutorDetailScreen({ language, onBack, tutorId }: TutorDetailScre
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {tutor.courses.map((course, idx) => (
-                      <Badge key={idx} variant="outline" className="border-indigo-300 bg-indigo-50 text-indigo-700">
+                      <Badge
+                        key={idx}
+                        variant="outline"
+                        className="border-indigo-300 bg-indigo-50 text-indigo-700"
+                      >
                         {course}
                       </Badge>
                     ))}
@@ -296,7 +392,10 @@ export function TutorDetailScreen({ language, onBack, tutorId }: TutorDetailScre
                 <CardContent>
                   <ul className="space-y-2">
                     {tutor.awards.map((award, idx) => (
-                      <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                      <li
+                        key={idx}
+                        className="text-sm text-gray-700 flex items-start gap-2"
+                      >
                         <span className="text-amber-600 mt-1">•</span>
                         {award}
                       </li>
@@ -329,10 +428,11 @@ export function TutorDetailScreen({ language, onBack, tutorId }: TutorDetailScre
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
-                        className={`h-4 w-4 ${i < review.rating
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-300'
-                          }`}
+                        className={`h-4 w-4 ${
+                          i < review.rating
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-300"
+                        }`}
                       />
                     ))}
                   </div>
@@ -355,11 +455,17 @@ export function TutorDetailScreen({ language, onBack, tutorId }: TutorDetailScre
             <CardContent>
               <div className="space-y-4">
                 {tutor.availability.map((slot, idx) => (
-                  <div key={idx} className="border-l-4 border-purple-500 pl-4 py-2">
+                  <div
+                    key={idx}
+                    className="border-l-4 border-purple-500 pl-4 py-2"
+                  >
                     <p className="font-medium mb-2">{slot.day}</p>
                     <div className="space-y-1">
                       {slot.times.map((time, timeIdx) => (
-                        <div key={timeIdx} className="flex items-center gap-2 text-sm text-gray-600">
+                        <div
+                          key={timeIdx}
+                          className="flex items-center gap-2 text-sm text-gray-600"
+                        >
                           <Clock className="h-4 w-4" />
                           {time}
                         </div>

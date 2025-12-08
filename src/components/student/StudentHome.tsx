@@ -1,41 +1,71 @@
-import { ChevronRight, Trophy } from 'lucide-react';
-import { Card } from '../ui/card';
-import { Button } from '../ui/button';
-import { Avatar, AvatarFallback } from '../ui/avatar';
-import type { Language } from '../../App';
+import { useNavigate } from "react-router-dom";
+import { ChevronRight, Trophy } from "lucide-react";
+import { Card } from "../ui/card";
+import { Button } from "../ui/button";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { useLayoutContext } from "../../hooks/useLayoutContext";
 
-interface StudentHomeProps {
-  onNavigate: (screen: string, sessionId?: number) => void;
-  language: Language;
-  user
-}
-
-export function StudentHome({ onNavigate, language, user }: StudentHomeProps) {
+export function StudentHome() {
+  const { language, user } = useLayoutContext();
+  const navigate = useNavigate();
   const t = {
-    dashboard: language === 'en' ? 'Student Dashboard' : 'Bảng điều khiển Sinh viên',
-    hotContest: language === 'en' ? 'HOT CONTEST' : 'CUỘC THI HOT',
+    dashboard:
+      language === "en" ? "Student Dashboard" : "Bảng điều khiển Sinh viên",
+    hotContest: language === "en" ? "HOT CONTEST" : "CUỘC THI HOT",
     talentsTitle: "HCMUT's Got Talents",
-    joinNow: language === 'en' ? 'Join now' : 'Tham gia ngay',
-    personalInfo: language === 'en' ? 'Personal Information' : 'Thông tin cá nhân',
-    student: language === 'en' ? 'Student' : 'Sinh viên',
-    ongoingContests: language === 'en' ? 'Ongoing contests' : 'Cuộc thi đang diễn ra',
-    join: language === 'en' ? 'Join' : 'Tham gia',
-    analyticsTitle: language === 'en' ? 'Your Goals' : 'Mục tiêu của bạn',
-    goals: language === 'en' ? 'Goals' : 'Mục tiêu',
-    progress: language === 'en' ? 'Progress' : 'Tiến độ',
+    joinNow: language === "en" ? "Join now" : "Tham gia ngay",
+    personalInfo:
+      language === "en" ? "Personal Information" : "Thông tin cá nhân",
+    student: language === "en" ? "Student" : "Sinh viên",
+    ongoingContests:
+      language === "en" ? "Ongoing contests" : "Cuộc thi đang diễn ra",
+    join: language === "en" ? "Join" : "Tham gia",
+    analyticsTitle: language === "en" ? "Your Goals" : "Mục tiêu của bạn",
+    goals: language === "en" ? "Goals" : "Mục tiêu",
+    progress: language === "en" ? "Progress" : "Tiến độ",
   };
 
   const contests = [
-    { id: 1, title: 'Algorithm Challenge 2025', participants: language === 'en' ? '45 people registering' : '45 người đăng ký' },
-    { id: 2, title: 'Data Science Competition', participants: language === 'en' ? '67 people registering' : '67 người đăng ký' },
+    {
+      id: 1,
+      title: "Algorithm Challenge 2025",
+      participants:
+        language === "en" ? "45 people registering" : "45 người đăng ký",
+    },
+    {
+      id: 2,
+      title: "Data Science Competition",
+      participants:
+        language === "en" ? "67 people registering" : "67 người đăng ký",
+    },
   ];
 
   // Sample goals data
   const goals = [
-    { id: 1, title: 'Achieve 3.7 GPA this semester', progress: 85, status: 'on-track' },
-    { id: 2, title: 'Complete 20 consultation sessions', progress: 60, status: 'on-track' },
-    { id: 3, title: 'Master Data Structures', progress: 45, status: 'needs-attention' },
-    { id: 4, title: 'Improve Algorithm skills to 90%', progress: 75, status: 'on-track' },
+    {
+      id: 1,
+      title: "Achieve 3.7 GPA this semester",
+      progress: 85,
+      status: "on-track",
+    },
+    {
+      id: 2,
+      title: "Complete 20 consultation sessions",
+      progress: 60,
+      status: "on-track",
+    },
+    {
+      id: 3,
+      title: "Master Data Structures",
+      progress: 45,
+      status: "needs-attention",
+    },
+    {
+      id: 4,
+      title: "Improve Algorithm skills to 90%",
+      progress: 75,
+      status: "on-track",
+    },
   ];
 
   return (
@@ -49,7 +79,7 @@ export function StudentHome({ onNavigate, language, user }: StudentHomeProps) {
             <h2 className="text-3xl mb-4">{t.talentsTitle}</h2>
             <Button
               className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-              onClick={() => onNavigate('contests')}
+              onClick={() => navigate("/student/contests")}
             >
               {t.joinNow} <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
@@ -61,7 +91,10 @@ export function StudentHome({ onNavigate, language, user }: StudentHomeProps) {
           <h3 className="text-xl mb-4">{t.analyticsTitle}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {goals.map((goal) => {
-              const progressPercent = Math.min((goal.progress / goal.target) * 100, 100);
+              const progressPercent = Math.min(
+                (goal.progress / goal.target) * 100,
+                100
+              );
               return (
                 <Card key={goal.id} className="p-4">
                   <p className="text-sm mb-2 font-medium">{goal.title}</p>
@@ -103,7 +136,7 @@ export function StudentHome({ onNavigate, language, user }: StudentHomeProps) {
               <div
                 key={contest.id}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                onClick={() => onNavigate('contests')}
+                onClick={() => navigate("/student/contests")}
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
@@ -113,7 +146,9 @@ export function StudentHome({ onNavigate, language, user }: StudentHomeProps) {
                   </Avatar>
                   <div>
                     <p className="text-sm">{contest.title}</p>
-                    <p className="text-xs text-gray-500">{contest.participants}</p>
+                    <p className="text-xs text-gray-500">
+                      {contest.participants}
+                    </p>
                   </div>
                 </div>
                 <Button
@@ -122,7 +157,7 @@ export function StudentHome({ onNavigate, language, user }: StudentHomeProps) {
                   className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onNavigate('contests');
+                    navigate("/student/contests");
                   }}
                 >
                   {t.join}

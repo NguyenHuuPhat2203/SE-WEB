@@ -1,36 +1,83 @@
-import { useState } from 'react';
-import { Download, Filter } from 'lucide-react';
-import { Card, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Badge } from '../ui/badge';
-import { toast } from 'sonner@2.0.3';
-import type { Language } from '../../App';
+import { useState } from "react";
+import { Download, Filter } from "lucide-react";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import { Badge } from "../ui/badge";
+import { toast } from "sonner@2.0.3";
+import { useLayoutContext } from "../../hooks/useLayoutContext";
 
 const mockStudents = [
-  { id: 1, name: 'Nguyen Huu Phat', studentId: '2312588', consultations: 12, contests: 3, avgEval: 4.5, activityScore: 92 },
-  { id: 2, name: 'Nguyen Trong Ngha', studentId: '2312271', consultations: 15, contests: 4, avgEval: 4.8, activityScore: 95 },
-  { id: 3, name: 'Nguyen Minh Khanh', studentId: '2311518', consultations: 8, contests: 2, avgEval: 4.2, activityScore: 78 },
-  { id: 4, name: 'Tran Trung Kien', studentId: '2311744', consultations: 6, contests: 1, avgEval: 4.0, activityScore: 65 }
+  {
+    id: 1,
+    name: "Nguyen Huu Phat",
+    studentId: "2312588",
+    consultations: 12,
+    contests: 3,
+    avgEval: 4.5,
+    activityScore: 92,
+  },
+  {
+    id: 2,
+    name: "Nguyen Trong Ngha",
+    studentId: "2312271",
+    consultations: 15,
+    contests: 4,
+    avgEval: 4.8,
+    activityScore: 95,
+  },
+  {
+    id: 3,
+    name: "Nguyen Minh Khanh",
+    studentId: "2311518",
+    consultations: 8,
+    contests: 2,
+    avgEval: 4.2,
+    activityScore: 78,
+  },
+  {
+    id: 4,
+    name: "Tran Trung Kien",
+    studentId: "2311744",
+    consultations: 6,
+    contests: 1,
+    avgEval: 4.0,
+    activityScore: 65,
+  },
 ];
 
-export function ScholarshipEvaluationScreen({ language }: { language: Language }) {
-  const [semester, setSemester] = useState('2025-1');
-  const [department, setDepartment] = useState('all');
+export function ScholarshipEvaluationScreen() {
+  const { language } = useLayoutContext();
+  const [semester, setSemester] = useState("2025-1");
+  const [department, setDepartment] = useState("all");
 
   const t = {
-    title: language === 'en' ? 'Scholarship Evaluation' : 'Đánh giá học bổng',
-    semester: language === 'en' ? 'Semester' : 'Học kỳ',
-    department: language === 'en' ? 'Department' : 'Khoa',
-    all: language === 'en' ? 'All' : 'Tất cả',
-    export: language === 'en' ? 'Export table' : 'Xuất bảng',
-    studentName: language === 'en' ? 'Student name' : 'Tên sinh viên',
-    studentId: language === 'en' ? 'Student ID' : 'Mã sinh viên',
-    consultations: language === 'en' ? 'Consultations attended' : 'Buổi tư vấn tham gia',
-    contests: language === 'en' ? 'Contests joined' : 'Cuộc thi tham gia',
-    avgEval: language === 'en' ? 'Avg evaluation' : 'Đánh giá TB',
-    activityScore: language === 'en' ? 'Activity score' : 'Điểm hoạt động'
+    title: language === "en" ? "Scholarship Evaluation" : "Đánh giá học bổng",
+    semester: language === "en" ? "Semester" : "Học kỳ",
+    department: language === "en" ? "Department" : "Khoa",
+    all: language === "en" ? "All" : "Tất cả",
+    export: language === "en" ? "Export table" : "Xuất bảng",
+    studentName: language === "en" ? "Student name" : "Tên sinh viên",
+    studentId: language === "en" ? "Student ID" : "Mã sinh viên",
+    consultations:
+      language === "en" ? "Consultations attended" : "Buổi tư vấn tham gia",
+    contests: language === "en" ? "Contests joined" : "Cuộc thi tham gia",
+    avgEval: language === "en" ? "Avg evaluation" : "Đánh giá TB",
+    activityScore: language === "en" ? "Activity score" : "Điểm hoạt động",
   };
 
   const getScoreBadge = (score: number) => {
@@ -78,7 +125,7 @@ export function ScholarshipEvaluationScreen({ language }: { language: Language }
             <Button
               variant="outline"
               onClick={() =>
-                toast.success(language === 'en' ? 'Downloaded' : 'Đã tải xuống')
+                toast.success(language === "en" ? "Downloaded" : "Đã tải xuống")
               }
             >
               <Download className="h-4 w-4 mr-2" />
@@ -108,15 +155,24 @@ export function ScholarshipEvaluationScreen({ language }: { language: Language }
                 <TableRow key={student.id}>
                   <TableCell>{student.name}</TableCell>
                   <TableCell>{student.studentId}</TableCell>
-                  <TableCell className="text-right">{student.consultations}</TableCell>
-                  <TableCell className="text-right">{student.contests}</TableCell>
-                  <TableCell className="text-right">{student.avgEval}</TableCell>
-                  <TableCell className="text-right">{student.activityScore}</TableCell>
-                  <TableCell className="text-right">{getScoreBadge(student.activityScore)}</TableCell>
+                  <TableCell className="text-right">
+                    {student.consultations}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {student.contests}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {student.avgEval}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {student.activityScore}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {getScoreBadge(student.activityScore)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
-
           </Table>
         </CardContent>
       </Card>

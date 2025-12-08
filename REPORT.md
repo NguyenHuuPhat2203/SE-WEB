@@ -69,11 +69,52 @@
 
 ## Vấn đề / Rủi ro
 
-- Không hashing password, không enforce auth/roles, captcha cố định, không rate limiting.
-- Storage in-memory, mất dữ liệu khi restart.
-- Lỗi import: `QAScreen` import `server/models/User` (sai); nên dùng type `User` từ `App.tsx`.
-- Mẫu code pha trộn: controller hard-code vs service/repo; validation/error handling không nhất quán.
-- CORS mở mọi origin; chưa có input sanitization ngoài kiểm tra thiếu trường.
+### ⚠️ Đã được cải thiện:
+
+- ~~Không hashing password~~ → ✅ **Đã implement PBKDF2 hashing** (cần update demo passwords)
+- ~~Không validation~~ → ✅ **Đã thêm comprehensive validation** (utils/validation.js)
+- ~~CORS mở mọi origin~~ → ✅ **Config-based CORS** (.env)
+- ~~Không error handling~~ → ✅ **Global error handler** + standardized responses
+- ~~Lỗi import QAScreen~~ → ✅ **Đã fix** (xóa import sai từ server/models/User)
+
+### 🔴 Vẫn tồn tại:
+
+- Không enforce auth/roles → Cần implement JWT middleware
+- Storage in-memory, mất dữ liệu khi restart → Cần migrate sang database
+- Controller hard-code vs service/repo → Cần refactor
+- Captcha cố định → Cần integrate reCAPTCHA/hCaptcha
+- Không rate limiting trên routes → Đã code sẵn middleware, chưa apply
+- Chưa có input sanitization ngoài kiểm tra thiếu trường → Đã có basic sanitization
+
+## Cải tiến đã thực hiện (Dec 2025)
+
+### 🔐 Bảo mật
+
+1. **Password Hashing**: PBKDF2 với salt (utils/password.js)
+2. **Input Validation**: Comprehensive validation (utils/validation.js)
+3. **XSS Prevention**: Basic string sanitization
+4. **Rate Limiting**: In-memory rate limiter (middleware/rateLimiter.js)
+5. **CORS Configuration**: Environment-based CORS settings
+
+### 🏗️ Kiến trúc
+
+1. **Config Management**: Centralized config với dotenv (utils/config.js)
+2. **Response Standardization**: Unified API responses (utils/response.js)
+3. **Error Handling**: Global error handler + async wrapper (middleware/errorHandler.js)
+4. **Environment Setup**: .env, .env.example, .gitignore
+
+### 🐛 Bug Fixes
+
+1. Fixed import error trong QAScreen.tsx
+2. Improved error messages trong authController
+3. Added request logging (development mode)
+
+### 📦 Dependencies
+
+- Added: `dotenv` (environment config)
+- Added: `nodemon` (dev dependency, auto-reload)
+
+Xem chi tiết trong `server/IMPROVEMENTS.md`
 
 ## Đề xuất tiếp theo
 

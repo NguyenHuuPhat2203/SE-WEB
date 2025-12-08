@@ -1,39 +1,62 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
-  Plus, Search, Edit, Trash2, FileText,
-  CheckCircle, XCircle, Clock
-} from 'lucide-react';
-import { Card, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Clock,
+} from "lucide-react";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter,
-  DialogHeader, DialogTitle, DialogTrigger
-} from '../ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Badge } from '../ui/badge';
-import { Avatar, AvatarFallback } from '../ui/avatar';
-import { toast } from 'sonner';
-import type { Language } from '../../App';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Badge } from "../ui/badge";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { toast } from "sonner";
+import { useLayoutContext } from "../../hooks/useLayoutContext";
 
-export function ManageCoursesAndRequests({ language }: { language: Language }) {
-  const [screen, setScreen] = useState<'list' | 'requests'>('list');
+export function ManageCoursesAndRequests() {
+  const { language } = useLayoutContext();
+  const [screen, setScreen] = useState<"list" | "requests">("list");
   const [reloadCourses, setReloadCourses] = useState(false); // trigger reload when approving requests
 
   return (
     <div className="p-6">
-      {screen === 'list' ? (
+      {screen === "list" ? (
         <ManageCoursesScreen
-          language={language}
-          onNavigate={() => setScreen('requests')}
+          onNavigate={() => setScreen("requests")}
           reloadTrigger={reloadCourses}
         />
       ) : (
         <CourseRequestsScreen
-          language={language}
-          onNavigateBack={() => setScreen('list')}
+          onNavigateBack={() => setScreen("list")}
           onApproved={() => setReloadCourses((r) => !r)}
         />
       )}
@@ -45,45 +68,45 @@ export function ManageCoursesAndRequests({ language }: { language: Language }) {
 // ========== MANAGE COURSES =========
 //
 function ManageCoursesScreen({
-  language,
   onNavigate,
   reloadTrigger,
 }: {
-  language: Language;
   onNavigate: () => void;
   reloadTrigger: boolean;
 }) {
+  const { language } = useLayoutContext();
   const [courses, setCourses] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<any | null>(null);
-  const [search, setSearch] = useState('');
-  const [courseCode, setCourseCode] = useState('');
-  const [courseName, setCourseName] = useState('');
-  const [department, setDepartment] = useState('Computer Science');
+  const [search, setSearch] = useState("");
+  const [courseCode, setCourseCode] = useState("");
+  const [courseName, setCourseName] = useState("");
+  const [department, setDepartment] = useState("Computer Science");
 
   const t = {
-    title: language === 'en' ? 'Manage Courses' : 'Quản lý môn học',
-    addCourse: language === 'en' ? 'Add course' : 'Thêm môn học',
-    viewRequests: language === 'en' ? 'View all requests' : 'Xem tất cả yêu cầu',
-    search: language === 'en' ? 'Search courses...' : 'Tìm kiếm môn học...',
-    code: language === 'en' ? 'Course code' : 'Mã môn học',
-    name: language === 'en' ? 'Course name' : 'Tên môn học',
-    department: language === 'en' ? 'Department' : 'Khoa',
-    tutors: language === 'en' ? 'Tutors' : 'Cố vấn',
-    students: language === 'en' ? 'Students' : 'Sinh viên',
-    actions: language === 'en' ? 'Actions' : 'Thao tác',
-    cancel: language === 'en' ? 'Cancel' : 'Hủy',
-    save: language === 'en' ? 'Save' : 'Lưu',
+    title: language === "en" ? "Manage Courses" : "Quản lý môn học",
+    addCourse: language === "en" ? "Add course" : "Thêm môn học",
+    viewRequests:
+      language === "en" ? "View all requests" : "Xem tất cả yêu cầu",
+    search: language === "en" ? "Search courses..." : "Tìm kiếm môn học...",
+    code: language === "en" ? "Course code" : "Mã môn học",
+    name: language === "en" ? "Course name" : "Tên môn học",
+    department: language === "en" ? "Department" : "Khoa",
+    tutors: language === "en" ? "Tutors" : "Cố vấn",
+    students: language === "en" ? "Students" : "Sinh viên",
+    actions: language === "en" ? "Actions" : "Thao tác",
+    cancel: language === "en" ? "Cancel" : "Hủy",
+    save: language === "en" ? "Save" : "Lưu",
   };
 
   // Fetch course list
   const fetchCourses = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/courses');
+      const res = await fetch("http://localhost:3001/api/courses");
       const json = await res.json();
       if (json.success) setCourses(json.data);
     } catch {
-      toast.error('Cannot load courses');
+      toast.error("Cannot load courses");
     }
   };
 
@@ -93,7 +116,7 @@ function ManageCoursesScreen({
 
   const handleSave = async () => {
     if (!courseCode.trim() || !courseName.trim() || !department.trim()) {
-      toast.error('Missing fields');
+      toast.error("Missing fields");
       return;
     }
 
@@ -101,36 +124,41 @@ function ManageCoursesScreen({
 
     if (editingCourse) {
       // PUT update
-      const res = await fetch(`http://localhost:3001/api/courses/${editingCourse.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(
+        `http://localhost:3001/api/courses/${editingCourse.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
       const json = await res.json();
-      if (json.success) toast.success('Course updated');
+      if (json.success) toast.success("Course updated");
     } else {
       // POST create
-      const res = await fetch('http://localhost:3001/api/courses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:3001/api/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       const json = await res.json();
-      if (json.success) toast.success('Course added');
+      if (json.success) toast.success("Course added");
     }
 
     setOpen(false);
     setEditingCourse(null);
-    setCourseCode('');
-    setCourseName('');
-    setDepartment('Computer Science');
+    setCourseCode("");
+    setCourseName("");
+    setDepartment("Computer Science");
     fetchCourses();
   };
 
   const handleDelete = async (id: number) => {
-    const res = await fetch(`http://localhost:3001/api/courses/${id}`, { method: 'DELETE' });
+    const res = await fetch(`http://localhost:3001/api/courses/${id}`, {
+      method: "DELETE",
+    });
     const json = await res.json();
-    if (json.success) toast.success('Course deleted');
+    if (json.success) toast.success("Course deleted");
     fetchCourses();
   };
 
@@ -164,9 +192,11 @@ function ManageCoursesScreen({
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingCourse ? 'Edit Course' : t.addCourse}</DialogTitle>
+                <DialogTitle>
+                  {editingCourse ? "Edit Course" : t.addCourse}
+                </DialogTitle>
                 <DialogDescription>
-                  {editingCourse ? 'Edit course details' : 'Add a new course'}
+                  {editingCourse ? "Edit course details" : "Add a new course"}
                 </DialogDescription>
               </DialogHeader>
 
@@ -244,8 +274,12 @@ function ManageCoursesScreen({
                   <TableCell>{course.code}</TableCell>
                   <TableCell>{course.name}</TableCell>
                   <TableCell>{course.department}</TableCell>
-                  <TableCell className="text-right">{course.numTutors}</TableCell>
-                  <TableCell className="text-right">{course.numStudents}</TableCell>
+                  <TableCell className="text-right">
+                    {course.numTutors}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {course.numStudents}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
@@ -255,7 +289,9 @@ function ManageCoursesScreen({
                           setEditingCourse(course);
                           setCourseCode(course.code);
                           setCourseName(course.name);
-                          setDepartment(course.department || 'Computer Science');
+                          setDepartment(
+                            course.department || "Computer Science"
+                          );
                           setOpen(true);
                         }}
                       >
@@ -284,20 +320,19 @@ function ManageCoursesScreen({
 // ========== 2️⃣ COURSE REQUESTS =========
 //
 function CourseRequestsScreen({
-  language,
   onNavigateBack,
   onApproved,
 }: {
-  language: Language;
   onNavigateBack: () => void;
   onApproved: () => void;
 }) {
+  const { language } = useLayoutContext();
   const [requests, setRequests] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const fetchRequests = async () => {
-    const res = await fetch('http://localhost:3001/api/course-requests');
+    const res = await fetch("http://localhost:3001/api/course-requests");
     const json = await res.json();
     if (json.success) setRequests(json.data);
   };
@@ -307,25 +342,35 @@ function CourseRequestsScreen({
   }, []);
 
   const handleApprove = async (id: number) => {
-    const res = await fetch(`http://localhost:3001/api/course-requests/${id}/approve`, {
-      method: 'PATCH',
-    });
+    const res = await fetch(
+      `http://localhost:3001/api/course-requests/${id}/approve`,
+      {
+        method: "PATCH",
+      }
+    );
     const json = await res.json();
     if (json.success) {
-      setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'approved' } : r)));
-      toast.success('Request approved!');
+      setRequests((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: "approved" } : r))
+      );
+      toast.success("Request approved!");
       onApproved();
     } else toast.error(json.message);
   };
 
   const handleReject = async (id: number) => {
-    const res = await fetch(`http://localhost:3001/api/course-requests/${id}/reject`, {
-      method: 'PATCH',
-    });
+    const res = await fetch(
+      `http://localhost:3001/api/course-requests/${id}/reject`,
+      {
+        method: "PATCH",
+      }
+    );
     const json = await res.json();
     if (json.success) {
-      setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'rejected' } : r)));
-      toast.success('Request rejected!');
+      setRequests((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: "rejected" } : r))
+      );
+      toast.success("Request rejected!");
     } else toast.error(json.message);
   };
 
@@ -335,18 +380,18 @@ function CourseRequestsScreen({
       r.studentId.includes(search) ||
       r.courseCode.toLowerCase().includes(search.toLowerCase()) ||
       r.courseName.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || r.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const getBadge = (status: string) => {
-    if (status === 'pending')
+    if (status === "pending")
       return (
         <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">
           <Clock className="h-3 w-3 mr-1" /> Pending
         </Badge>
       );
-    if (status === 'approved')
+    if (status === "approved")
       return (
         <Badge className="bg-green-50 text-green-700 border-green-200">
           <CheckCircle className="h-3 w-3 mr-1" /> Approved
@@ -364,7 +409,9 @@ function CourseRequestsScreen({
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-gray-900 mb-2">Course Requests</h1>
-          <p className="text-gray-600">Review and manage student course requests</p>
+          <p className="text-gray-600">
+            Review and manage student course requests
+          </p>
         </div>
         <Button variant="outline" onClick={onNavigateBack}>
           Back
@@ -416,7 +463,9 @@ function CourseRequestsScreen({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
-                        <AvatarFallback>{req.studentName.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>
+                          {req.studentName.charAt(0)}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <p>{req.studentName}</p>
@@ -430,11 +479,13 @@ function CourseRequestsScreen({
                   </TableCell>
                   <TableCell>{req.requestDate}</TableCell>
                   <TableCell>
-                    <p className="text-sm line-clamp-2 max-w-xs">{req.reason}</p>
+                    <p className="text-sm line-clamp-2 max-w-xs">
+                      {req.reason}
+                    </p>
                   </TableCell>
                   <TableCell>{getBadge(req.status)}</TableCell>
                   <TableCell className="text-right">
-                    {req.status === 'pending' && (
+                    {req.status === "pending" && (
                       <div className="flex justify-end gap-2">
                         <Button
                           variant="ghost"

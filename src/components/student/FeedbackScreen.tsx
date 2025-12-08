@@ -1,110 +1,91 @@
-import { useState } from 'react';
-import { Star } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { Badge } from '../ui/badge';
-import { Input } from '../ui/input';
-import { toast } from 'sonner@2.0.3';
-import type { Language } from '../../App';
+import { useState } from "react";
+import { Star } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Badge } from "../ui/badge";
+import { Input } from "../ui/input";
+import { toast } from "sonner@2.0.3";
+import { useLayoutContext } from "../../hooks/useLayoutContext";
 
-interface FeedbackScreenProps {
-  language: Language;
-}
+interface FeedbackScreenProps {}
 
-export function FeedbackScreen({ language }: FeedbackScreenProps) {
-  const [evaluationType, setEvaluationType] = useState('tutor');
+export function FeedbackScreen({}: FeedbackScreenProps) {
+  const { language } = useLayoutContext();
+  const [evaluationType, setEvaluationType] = useState("tutor");
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [comments, setComments] = useState('');
+  const [comments, setComments] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // 👇 state thông tin cá nhân
-  const [fullName, setFullName] = useState('');
-  const [bknetId, setBknetId] = useState('');
-  const [studentClass, setStudentClass] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [bknetId, setBknetId] = useState("");
+  const [studentClass, setStudentClass] = useState("");
 
   const t = {
-    title: language === 'en' ? 'Evaluation' : 'Đánh giá',
+    title: language === "en" ? "Evaluation" : "Đánh giá",
 
     // Thêm bước 0 – thông tin cá nhân
     step0:
-      language === 'en'
-        ? 'Step 0: Your personal information'
-        : 'Bước 0: Thông tin cá nhân',
-    fullName: language === 'en' ? 'Full name' : 'Họ và tên',
-    bknetIdLabel: 'BKnetID',
-    classLabel: language === 'en' ? 'Class / Cohort' : 'Lớp / Khóa',
+      language === "en"
+        ? "Step 0: Your personal information"
+        : "Bước 0: Thông tin cá nhân",
+    fullName: language === "en" ? "Full name" : "Họ và tên",
+    bknetIdLabel: "BKnetID",
+    classLabel: language === "en" ? "Class / Cohort" : "Lớp / Khóa",
     missingInfo:
-      language === 'en'
-        ? 'Please fill in your name and BKnetID before submitting.'
-        : 'Vui lòng nhập Họ tên và BKnetID trước khi gửi.',
+      language === "en"
+        ? "Please fill in your name and BKnetID before submitting."
+        : "Vui lòng nhập Họ tên và BKnetID trước khi gửi.",
 
     step1:
-      language === 'en'
-        ? 'Step 1: Choose what to evaluate'
-        : 'Bước 1: Chọn đối tượng đánh giá',
-    tutor: language === 'en' ? 'Tutor' : 'Cố vấn',
-    session:
-      language === 'en' ? 'Consultation session' : 'Buổi tư vấn',
-    course:
-      language === 'en' ? 'Course/Class' : 'Môn học/Lớp học',
+      language === "en"
+        ? "Step 1: Choose what to evaluate"
+        : "Bước 1: Chọn đối tượng đánh giá",
+    tutor: language === "en" ? "Tutor" : "Cố vấn",
+    session: language === "en" ? "Consultation session" : "Buổi tư vấn",
+    course: language === "en" ? "Course/Class" : "Môn học/Lớp học",
     step2:
-      language === 'en'
-        ? 'Step 2: Your evaluation'
-        : 'Bước 2: Đánh giá của bạn',
-    rating: language === 'en' ? 'Rating' : 'Xếp hạng',
+      language === "en"
+        ? "Step 2: Your evaluation"
+        : "Bước 2: Đánh giá của bạn",
+    rating: language === "en" ? "Rating" : "Xếp hạng",
     comments:
-      language === 'en'
-        ? 'Comments / Suggestions'
-        : 'Nhận xét / Đề xuất',
-    tags: language === 'en' ? 'Tags (optional)' : 'Thẻ (tùy chọn)',
-    submit: language === 'en' ? 'Submit' : 'Gửi',
-    cancel: language === 'en' ? 'Cancel' : 'Hủy',
+      language === "en" ? "Comments / Suggestions" : "Nhận xét / Đề xuất",
+    tags: language === "en" ? "Tags (optional)" : "Thẻ (tùy chọn)",
+    submit: language === "en" ? "Submit" : "Gửi",
+    cancel: language === "en" ? "Cancel" : "Hủy",
     success:
-      language === 'en'
-        ? 'Thank you for your feedback!'
-        : 'Cảm ơn phản hồi của bạn!',
+      language === "en"
+        ? "Thank you for your feedback!"
+        : "Cảm ơn phản hồi của bạn!",
   };
 
   const tags = [
     {
-      id: 'quality',
-      label:
-        language === 'en'
-          ? 'Content quality'
-          : 'Chất lượng nội dung',
+      id: "quality",
+      label: language === "en" ? "Content quality" : "Chất lượng nội dung",
     },
     {
-      id: 'teaching',
-      label:
-        language === 'en'
-          ? 'Teaching style'
-          : 'Phong cách giảng dạy',
+      id: "teaching",
+      label: language === "en" ? "Teaching style" : "Phong cách giảng dạy",
     },
     {
-      id: 'support',
-      label:
-        language === 'en'
-          ? 'Support level'
-          : 'Mức độ hỗ trợ',
+      id: "support",
+      label: language === "en" ? "Support level" : "Mức độ hỗ trợ",
     },
     {
-      id: 'timing',
-      label:
-        language === 'en'
-          ? 'Time management'
-          : 'Quản lý thời gian',
+      id: "timing",
+      label: language === "en" ? "Time management" : "Quản lý thời gian",
     },
   ];
 
   const handleTagToggle = (tagId: string) => {
     setSelectedTags((prev) =>
-      prev.includes(tagId)
-        ? prev.filter((t) => t !== tagId)
-        : [...prev, tagId],
+      prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]
     );
   };
 
@@ -119,7 +100,7 @@ export function FeedbackScreen({ language }: FeedbackScreenProps) {
 
     // reset phần đánh giá (giữ lại info cá nhân cho lần sau)
     setRating(0);
-    setComments('');
+    setComments("");
     setSelectedTags([]);
   };
 
@@ -144,9 +125,9 @@ export function FeedbackScreen({ language }: FeedbackScreenProps) {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder={
-                    language === 'en'
-                      ? 'Enter your full name'
-                      : 'Nhập họ và tên'
+                    language === "en"
+                      ? "Enter your full name"
+                      : "Nhập họ và tên"
                   }
                 />
               </div>
@@ -167,16 +148,12 @@ export function FeedbackScreen({ language }: FeedbackScreenProps) {
                 value={studentClass}
                 onChange={(e) => setStudentClass(e.target.value)}
                 placeholder={
-                  language === 'en'
-                    ? 'e.g., CNPM L04'
-                    : 'VD: CNPM L04'
+                  language === "en" ? "e.g., CNPM L04" : "VD: CNPM L04"
                 }
               />
             </div>
             <p className="text-xs text-gray-400">
-              * {language === 'en'
-                ? 'Required fields'
-                : 'Trường bắt buộc'}
+              * {language === "en" ? "Required fields" : "Trường bắt buộc"}
             </p>
           </CardContent>
         </Card>
@@ -193,60 +170,48 @@ export function FeedbackScreen({ language }: FeedbackScreenProps) {
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card
-                  className={`cursor-pointer ${evaluationType === 'tutor'
-                      ? 'border-blue-600 bg-blue-50'
-                      : ''
-                    }`}
+                  className={`cursor-pointer ${
+                    evaluationType === "tutor"
+                      ? "border-blue-600 bg-blue-50"
+                      : ""
+                  }`}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="tutor" id="tutor" />
-                      <Label
-                        htmlFor="tutor"
-                        className="cursor-pointer"
-                      >
+                      <Label htmlFor="tutor" className="cursor-pointer">
                         {t.tutor}
                       </Label>
                     </div>
                   </CardContent>
                 </Card>
                 <Card
-                  className={`cursor-pointer ${evaluationType === 'session'
-                      ? 'border-blue-600 bg-blue-50'
-                      : ''
-                    }`}
+                  className={`cursor-pointer ${
+                    evaluationType === "session"
+                      ? "border-blue-600 bg-blue-50"
+                      : ""
+                  }`}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem
-                        value="session"
-                        id="session"
-                      />
-                      <Label
-                        htmlFor="session"
-                        className="cursor-pointer"
-                      >
+                      <RadioGroupItem value="session" id="session" />
+                      <Label htmlFor="session" className="cursor-pointer">
                         {t.session}
                       </Label>
                     </div>
                   </CardContent>
                 </Card>
                 <Card
-                  className={`cursor-pointer ${evaluationType === 'course'
-                      ? 'border-blue-600 bg-blue-50'
-                      : ''
-                    }`}
+                  className={`cursor-pointer ${
+                    evaluationType === "course"
+                      ? "border-blue-600 bg-blue-50"
+                      : ""
+                  }`}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem
-                        value="course"
-                        id="course"
-                      />
-                      <Label
-                        htmlFor="course"
-                        className="cursor-pointer"
-                      >
+                      <RadioGroupItem value="course" id="course" />
+                      <Label htmlFor="course" className="cursor-pointer">
                         {t.course}
                       </Label>
                     </div>
@@ -269,19 +234,18 @@ export function FeedbackScreen({ language }: FeedbackScreenProps) {
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`h-8 w-8 cursor-pointer transition-colors ${star <= (hoverRating || rating)
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-gray-300'
-                      }`}
+                    className={`h-8 w-8 cursor-pointer transition-colors ${
+                      star <= (hoverRating || rating)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
+                    }`}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
                     onClick={() => setRating(star)}
                   />
                 ))}
                 {rating > 0 && (
-                  <span className="ml-2 text-gray-600">
-                    {rating}/5
-                  </span>
+                  <span className="ml-2 text-gray-600">{rating}/5</span>
                 )}
               </div>
             </div>
@@ -294,9 +258,9 @@ export function FeedbackScreen({ language }: FeedbackScreenProps) {
                 onChange={(e) => setComments(e.target.value)}
                 rows={5}
                 placeholder={
-                  language === 'en'
-                    ? 'Share your experience...'
-                    : 'Chia sẻ trải nghiệm của bạn...'
+                  language === "en"
+                    ? "Share your experience..."
+                    : "Chia sẻ trải nghiệm của bạn..."
                 }
               />
             </div>
@@ -308,9 +272,7 @@ export function FeedbackScreen({ language }: FeedbackScreenProps) {
                   <Badge
                     key={tag.id}
                     variant={
-                      selectedTags.includes(tag.id)
-                        ? 'default'
-                        : 'outline'
+                      selectedTags.includes(tag.id) ? "default" : "outline"
                     }
                     className="cursor-pointer"
                     onClick={() => handleTagToggle(tag.id)}
@@ -322,17 +284,14 @@ export function FeedbackScreen({ language }: FeedbackScreenProps) {
             </div>
 
             <div className="flex gap-3">
-              <Button
-                onClick={handleSubmit}
-                disabled={rating === 0}
-              >
+              <Button onClick={handleSubmit} disabled={rating === 0}>
                 {t.submit}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => {
                   setRating(0);
-                  setComments('');
+                  setComments("");
                   setSelectedTags([]);
                 }}
               >
