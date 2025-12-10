@@ -1,5 +1,5 @@
 // repositories/userRepositoryMongo.js - MongoDB version
-const { UserModel } = require('../db/models');
+const { UserModel } = require("../db/models");
 
 class UserRepositoryMongo {
   /**
@@ -7,9 +7,11 @@ class UserRepositoryMongo {
    */
   async findByBknetId(bknetId) {
     try {
-      return await UserModel.findOne({ bknetId: bknetId.toLowerCase() });
+      return await UserModel.findOne({ bknetId: bknetId.toLowerCase() }).select(
+        "+password"
+      );
     } catch (error) {
-      console.error('Error finding user by bknetId:', error);
+      console.error("Error finding user by bknetId:", error);
       throw error;
     }
   }
@@ -21,7 +23,7 @@ class UserRepositoryMongo {
     try {
       return await UserModel.findById(id);
     } catch (error) {
-      console.error('Error finding user by id:', error);
+      console.error("Error finding user by id:", error);
       throw error;
     }
   }
@@ -31,9 +33,9 @@ class UserRepositoryMongo {
    */
   async getAll() {
     try {
-      return await UserModel.find().select('-password');
+      return await UserModel.find().select("-password");
     } catch (error) {
-      console.error('Error getting all users:', error);
+      console.error("Error getting all users:", error);
       throw error;
     }
   }
@@ -47,7 +49,7 @@ class UserRepositoryMongo {
       await user.save();
       return user;
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error("Error creating user:", error);
       throw error;
     }
   }
@@ -61,11 +63,11 @@ class UserRepositoryMongo {
         { bknetId: bknetId.toLowerCase() },
         { $set: updates },
         { new: true, runValidators: true }
-      ).select('-password');
-      
+      ).select("-password");
+
       return user;
     } catch (error) {
-      console.error('Error updating user profile:', error);
+      console.error("Error updating user profile:", error);
       throw error;
     }
   }
@@ -80,10 +82,10 @@ class UserRepositoryMongo {
 
       user.password = newPassword;
       await user.save(); // Will trigger pre-save hook to hash password
-      
+
       return user;
     } catch (error) {
-      console.error('Error updating password:', error);
+      console.error("Error updating password:", error);
       throw error;
     }
   }
@@ -98,10 +100,10 @@ class UserRepositoryMongo {
 
       user.addNotification(notificationData);
       await user.save();
-      
+
       return user.notifications[0];
     } catch (error) {
-      console.error('Error adding notification:', error);
+      console.error("Error adding notification:", error);
       throw error;
     }
   }
@@ -116,10 +118,10 @@ class UserRepositoryMongo {
 
       user.markNotificationRead(notificationId);
       await user.save();
-      
+
       return user;
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
       throw error;
     }
   }
@@ -129,12 +131,13 @@ class UserRepositoryMongo {
    */
   async getNotifications(bknetId) {
     try {
-      const user = await UserModel.findOne({ bknetId: bknetId.toLowerCase() })
-        .select('notifications');
-      
+      const user = await UserModel.findOne({
+        bknetId: bknetId.toLowerCase(),
+      }).select("notifications");
+
       return user ? user.notifications : [];
     } catch (error) {
-      console.error('Error getting notifications:', error);
+      console.error("Error getting notifications:", error);
       throw error;
     }
   }
@@ -144,9 +147,11 @@ class UserRepositoryMongo {
    */
   async delete(bknetId) {
     try {
-      return await UserModel.findOneAndDelete({ bknetId: bknetId.toLowerCase() });
+      return await UserModel.findOneAndDelete({
+        bknetId: bknetId.toLowerCase(),
+      });
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error("Error deleting user:", error);
       throw error;
     }
   }

@@ -32,6 +32,7 @@ const { protect, authorize } = require("./middleware/auth");
 
 // Controllers
 const authController = require("./controllers/authController");
+const ssoController = require("./controllers/ssoController");
 const contestController = require("./controllers/contestController");
 const sessionController = require("./controllers/sessionController");
 const tutorController = require("./controllers/tutorController");
@@ -66,11 +67,13 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
-// Auth routes (public)
-app.post("/api/login", authController.login);
-app.post("/api/register", authController.register);
-app.post("/api/password/search", authController.searchAccount);
-app.post("/api/password/reset", authController.resetPassword);
+// SSO routes (public)
+app.get("/api/auth/sso/login", ssoController.initiateLogin);
+app.get("/api/sso/login", ssoController.showLoginPage);
+app.post("/api/sso/authenticate", ssoController.authenticate);
+app.post("/api/auth/sso/token", ssoController.exchangeToken);
+app.post("/api/auth/sso/logout", ssoController.logout);
+app.get("/api/auth/sso/session", ssoController.checkSession);
 
 // User routes (protected)
 app.get("/api/me", protect, userController.getCurrentUser);

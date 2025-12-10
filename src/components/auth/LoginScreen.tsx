@@ -1,33 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
 import { Alert, AlertDescription } from "../ui/alert";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../ui/alert-dialog";
 import { AlertCircle, GraduationCap } from "lucide-react";
-import { useAuth } from "../../contexts/AuthContext";
 
 type Language = "en" | "vi";
-type UserRole = "student" | "tutor" | "cod" | "ctsv";
 
 export function LoginScreen() {
-  const { login } = useAuth();
   const [language] = useState<Language>("en");
-  const [bknetId, setBknetId] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>("student");
 
   const t = {
     title: "HCMUT",
@@ -37,44 +17,31 @@ export function LoginScreen() {
       language === "en"
         ? "Connect with tutors and achieve your academic goals"
         : "Kết nối với cố vấn và đạt được mục tiêu học tập",
-    login: language === "en" ? "Log In" : "Đăng nhập",
-    createAccount: language === "en" ? "Register" : "Tạo tài khoản mới",
-    bknetId: "BKnetID",
-    password: language === "en" ? "Password" : "Mật khẩu",
-    forgotPassword:
-      language === "en" ? "Forgotten password?" : "Quên mật khẩu?",
-    wrongInfo: language === "en" ? "Wrong information" : "Sai thông tin",
-    errorDesc:
+    ssoButton:
+      language === "en" ? "Login with HCMUT SSO" : "Đăng nhập qua HCMUT SSO",
+    ssoInfo:
       language === "en"
-        ? "The BKnetID or password you entered is incorrect."
-        : "BKnetID hoặc mật khẩu bạn nhập không đúng.",
-    tryAgain: language === "en" ? "Try again" : "Thử lại",
-    recoverPassword:
-      language === "en" ? "Recover password" : "Khôi phục mật khẩu",
-    loginAs:
-      language === "en" ? "Demo - Login as:" : "Demo - Đăng nhập với vai trò:",
+        ? "Use your HCMUT BKnet ID to access the system"
+        : "Sử dụng BKnet ID của HCMUT để truy cập hệ thống",
   };
 
-  const handleLogin = async () => {
+  const handleSSOLogin = async () => {
     setError("");
 
-    if (!bknetId.trim() || !password.trim()) {
-      setError(
-        language === "en"
-          ? "Please fill in all fields"
-          : "Vui lòng điền đầy đủ thông tin"
-      );
-      return;
-    }
-
     try {
-      await login(bknetId, password);
-    } catch (err: any) {
-      setError(
-        err.message ||
-          (language === "en" ? "Login failed" : "Đăng nhập thất bại")
+      const response = await fetch(
+        "http://localhost:3001/api/auth/sso/login?redirect_uri=http://localhost/auth/callback"
       );
-      setShowErrorDialog(true);
+      const data = await response.json();
+
+      if (data.success) {
+        window.location.href = data.data.authUrl;
+      } else {
+        setError(data.message || "Failed to initiate SSO login");
+      }
+    } catch (err: any) {
+      setError("Network error. Please try again.");
+      console.error("SSO login error:", err);
     }
   };
 
@@ -99,9 +66,16 @@ export function LoginScreen() {
             </p>
           </div>
 
-          {/* Right side - Login Form */}
+          {/* Right side - SSO Login */}
           <div className="w-full max-w-md mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-8 space-y-4">
+            <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {language === "en" ? "Welcome" : "Chào mừng"}
+                </h2>
+                <p className="text-gray-600 text-sm">{t.ssoInfo}</p>
+              </div>
+
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -109,83 +83,31 @@ export function LoginScreen() {
                 </Alert>
               )}
 
-              <div className="space-y-3">
-                <Input
-                  id="bknetId"
-                  type="text"
-                  value={bknetId}
-                  onChange={(e) => setBknetId(e.target.value)}
-                  placeholder={t.bknetId}
-                  className="h-12 px-4 bg-gray-50 border-gray-300"
-                />
-
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                  placeholder={t.password}
-                  className="h-12 px-4 bg-gray-50 border-gray-300"
-                />
-              </div>
-
               <Button
-                onClick={handleLogin}
-                className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                onClick={handleSSOLogin}
+                className="w-full h-16 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-lg font-semibold shadow-lg"
               >
-                {t.login}
+                🎓 {t.ssoButton}
               </Button>
 
-              <div className="text-center">
-                <Link
-                  to="/recover-password"
-                  className="text-purple-600 hover:underline"
-                >
-                  {t.forgotPassword}
-                </Link>
-              </div>
-
-              <div className="border-t border-gray-300 pt-4">
-                <Link to="/register">
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 border-purple-600 text-purple-600 hover:bg-purple-50"
-                  >
-                    {t.createAccount}
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Demo role selector */}
-              <div className="pt-4 border-t border-gray-200">
-                <Label className="text-xs text-gray-500 block mb-2">
-                  {t.loginAs}
-                </Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {(["student", "tutor", "cod", "ctsv"] as UserRole[]).map(
-                    (role) => (
-                      <button
-                        key={role}
-                        className={`px-2 py-1.5 rounded text-xs transition-colors ${
-                          selectedRole === role
-                            ? "bg-purple-600 text-white"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        }`}
-                        onClick={() => setSelectedRole(role)}
-                        type="button"
-                      >
-                        {role === "student"
-                          ? "Student"
-                          : role === "tutor"
-                          ? "Tutor"
-                          : role === "cod"
-                          ? "CoD"
-                          : "CTSV"}
-                      </button>
-                    )
-                  )}
-                </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+                <p className="font-medium mb-2">
+                  {language === "en" ? "Demo Credentials:" : "Tài khoản demo:"}
+                </p>
+                <ul className="space-y-1 text-xs">
+                  <li>
+                    <strong>Student:</strong> student / password
+                  </li>
+                  <li>
+                    <strong>Tutor:</strong> tutor / password
+                  </li>
+                  <li>
+                    <strong>CoD:</strong> cod / password
+                  </li>
+                  <li>
+                    <strong>CTSV:</strong> ctsv / password
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
@@ -196,23 +118,6 @@ export function LoginScreen() {
       <footer className="py-6 text-center text-sm text-gray-500 border-t border-gray-200">
         <p>© 2025 HCMUT - Ho Chi Minh University of Technology</p>
       </footer>
-
-      <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t.wrongInfo}</AlertDialogTitle>
-            <AlertDialogDescription>{t.errorDesc}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowErrorDialog(false)}>
-              {t.tryAgain}
-            </AlertDialogCancel>
-            <Link to="/recover-password">
-              <AlertDialogAction>{t.recoverPassword}</AlertDialogAction>
-            </Link>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

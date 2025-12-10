@@ -2,8 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { LoginScreen } from "../components/auth/LoginScreen";
-import { RegisterScreen } from "../components/auth/RegisterScreen";
-import { PasswordRecoveryScreen } from "../components/auth/PasswordRecoveryScreen";
+import { SSOCallbackScreen } from "../components/auth/SSOCallbackScreen";
 import { MainLayout } from "../components/layouts/MainLayout";
 
 // Student
@@ -53,16 +52,7 @@ export function AppRoutes() {
         path="/login"
         element={user ? <Navigate to="/" replace /> : <LoginScreen />}
       />
-      <Route
-        path="/register"
-        element={user ? <Navigate to="/" replace /> : <RegisterScreen />}
-      />
-      <Route
-        path="/recover-password"
-        element={
-          user ? <Navigate to="/" replace /> : <PasswordRecoveryScreen />
-        }
-      />
+      <Route path="/auth/callback" element={<SSOCallbackScreen />} />
 
       {/* Protected routes with layout */}
       <Route

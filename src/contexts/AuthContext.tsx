@@ -16,13 +16,15 @@ export interface User {
   faculty?: string;
   department?: string;
   name?: string;
+  permissions?: string[];
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (bknetId: string, password: string) => Promise<void>;
+  loginWithSSO: (token: string, user: any) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+  hasPermission: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             faculty: userData.faculty,
             department: userData.department,
             name: `${userData.firstName} ${userData.lastName}`,
+            permissions: userData.permissions || [],
           });
         } else {
           localStorage.removeItem("token");
@@ -79,47 +82,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (bknetId: string, password: string) => {
+  const loginWithSSO = async (token: string, userData: any) => {
     try {
-      const res = await fetch("http://localhost:3001/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bknetId, password }),
-      });
-
-      const result = await res.json();
-
-      if (!result.success) {
-        throw new Error(result.message || "Login failed");
-      }
-
-      localStorage.setItem("token", result.data.token);
-
-      const userData = result.data.user;
       setUser({
-        id: userData.id,
+        id: userData._id || userData.id,
         bknetId: userData.bknetId,
         firstName: userData.firstName,
         lastName: userData.lastName,
         role: userData.role,
+        faculty: userData.faculty,
+        department: userData.department,
         name: `${userData.firstName} ${userData.lastName}`,
+        permissions: userData.permissions || [],
       });
-
-      navigate("/");
     } catch (err) {
-      console.error(err);
+      console.error("SSO login failed:", err);
       throw err;
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const token = localStorage.getItem("token");
+
+    // Try to logout from SSO
+    if (token) {
+      try {
+        await fetch("http://localhost:3001/api/auth/sso/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch (err) {
+        console.error("SSO logout failed:", err);
+      }
+    }
+
     localStorage.removeItem("token");
     setUser(null);
     navigate("/login");
   };
 
+  const hasPermission = (permission: string): boolean => {
+    if (!user || !user.permissions) return false;
+    return user.permissions.includes(permission);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, loginWithSSO, logout, isLoading, hasPermission }}
+    >
       {children}
     </AuthContext.Provider>
   );
