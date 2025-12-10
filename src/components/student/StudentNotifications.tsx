@@ -23,9 +23,10 @@ import {
 } from "../ui/select";
 import { toast } from "sonner";
 import { useLayoutContext } from "../../hooks/useLayoutContext";
+import { api } from "../../utils/api";
 
 interface Notification {
-  id: number;
+  _id: string; // MongoDB ObjectId
   title: string;
   senderBknetId?: string;
   time: string;
@@ -63,27 +64,27 @@ export function StudentNotifications({
   };
 
   useEffect(() => {
-    fetch(`http://localhost:3001/api/notifications?bknetId=${user.bknetId}`)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success) setNotifications(json.data);
-        else toast.error("Failed to load notifications");
-      })
-      .catch(() => toast.error("Cannot connect to backend"));
-  }, [user.bknetId]);
-
-  const handleNotificationClick = (notification: Notification) => {
-    if (notification.unread) {
-      fetch(`http://localhost:3001/api/notifications/${notification.id}/read`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bknetId: user.bknetId }),
-      });
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notification.id ? { ...n, unread: false } : n
-        )
+    // Fetch notifications with JWT token
+    api
+      .get<Notification[]>("/notifications")
+      .then((data) => setNotifications(data))
+      .catch((error) =>
+        toast.error(error.message || "Failed to load notifications")
       );
+  }, []);
+
+  const handleNotificationClick = async (notification: Notification) => {
+    if (notification.unread) {
+      try {
+        await api.patch(`/notifications/${notification._id}/read`, {});
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n._id === notification._id ? { ...n, unread: false } : n
+          )
+        );
+      } catch (error: any) {
+        toast.error(error.message || "Failed to mark as read");
+      }
     }
     setSelectedNotification(notification);
   };
@@ -96,28 +97,20 @@ export function StudentNotifications({
 
     const payload = {
       receiverBknetId: composeTo.trim(),
-      senderBknetId: user.bknetId,
       title: composeSubject.trim(),
       content: composeContent.trim(),
       type: "system",
     };
 
     try {
-      const res = await fetch("http://localhost:3001/api/addnotification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json();
-      if (json.success) {
-        toast.success("Notification sent!");
-        setComposeOpen(false);
-        setComposeTo("");
-        setComposeSubject("");
-        setComposeContent("");
-      } else toast.error(json.message || "Send failed");
-    } catch {
-      toast.error("Server error");
+      await api.post("/addnotification", payload);
+      toast.success("Notification sent!");
+      setComposeOpen(false);
+      setComposeTo("");
+      setComposeSubject("");
+      setComposeContent("");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send notification");
     }
   };
 
@@ -199,10 +192,10 @@ export function StudentNotifications({
         <div className="lg:col-span-1 space-y-2">
           {filtered.map((n) => (
             <Card
-              key={n.id}
+              key={n._id}
               onClick={() => handleNotificationClick(n)}
               className={`cursor-pointer transition-colors ${
-                selectedNotification?.id === n.id
+                selectedNotification?._id === n._id
                   ? "border-blue-600 bg-blue-50"
                   : "hover:bg-gray-50"
               }`}

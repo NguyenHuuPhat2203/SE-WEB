@@ -1,4 +1,4 @@
-const tutorRepository = require('../repositories/tutorRepository');
+const tutorRepository = require("../repositories/tutorRepositoryMongo");
 
 class TutorService {
   list() {
@@ -7,7 +7,7 @@ class TutorService {
 
   getById(id) {
     const t = tutorRepository.findById(id);
-    if (!t) throw new Error('NOT_FOUND');
+    if (!t) throw new Error("NOT_FOUND");
     return t;
   }
 

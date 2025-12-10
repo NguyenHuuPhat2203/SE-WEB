@@ -44,7 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/api/users", {
+      // Call /api/me to get current user info
+      const res = await fetch("http://localhost:3001/api/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -52,16 +53,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (res.ok) {
         const result = await res.json();
-        if (result.success && result.data.length > 0) {
-          const userData = result.data[0];
+        if (result.success) {
+          const userData = result.data;
           setUser({
-            id: userData.id,
+            id: userData._id || userData.id,
             bknetId: userData.bknetId,
             firstName: userData.firstName,
             lastName: userData.lastName,
             role: userData.role,
+            faculty: userData.faculty,
+            department: userData.department,
             name: `${userData.firstName} ${userData.lastName}`,
           });
+        } else {
+          localStorage.removeItem("token");
         }
       } else {
         localStorage.removeItem("token");

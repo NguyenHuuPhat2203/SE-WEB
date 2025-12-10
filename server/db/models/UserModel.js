@@ -99,10 +99,20 @@ userSchema.pre("save", async function (next) {
   }
 
   try {
+    console.log("[PRE-SAVE] Hashing password for user:", this.bknetId);
+    console.log(
+      "[PRE-SAVE] Original password:",
+      this.password.substring(0, 10) + "..."
+    );
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
+    console.log(
+      "[PRE-SAVE] Hashed password:",
+      this.password.substring(0, 30) + "..."
+    );
     next();
   } catch (error) {
+    console.log("[PRE-SAVE] Error:", error.message);
     next(error);
   }
 });

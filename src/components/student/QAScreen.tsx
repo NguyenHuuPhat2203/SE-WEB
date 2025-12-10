@@ -35,7 +35,8 @@ import { Avatar, AvatarFallback } from "../ui/avatar";
 import { toast } from "sonner";
 
 interface Answer {
-  id: number;
+  _id?: string;
+  id?: number;
   author: string;
   content: string;
   time: string;
@@ -44,7 +45,8 @@ interface Answer {
 }
 
 interface Question {
-  id: number;
+  _id?: string;
+  id?: number;
   title: string;
   content: string;
   author: string;
@@ -78,7 +80,13 @@ export function QAScreen() {
   const loadQuestions = async () => {
     try {
       const data = await api.get("/getquestions");
-      setQuestions(data);
+      // Transform MongoDB _id to id for compatibility
+      const transformed = data.map((q: any) => ({
+        ...q,
+        id: q._id,
+        answers: q.answers?.map((a: any) => ({ ...a, id: a._id })) || [],
+      }));
+      setQuestions(transformed);
     } catch (error: any) {
       toast.error(error.message || "Cannot load questions");
     }
@@ -131,7 +139,13 @@ export function QAScreen() {
         author: user.bknetId,
       });
 
-      setQuestions((qs) => [newQuestion.question, ...qs]);
+      const transformed = {
+        ...newQuestion.question,
+        id: newQuestion.question._id,
+        answers: [],
+      };
+
+      setQuestions((qs) => [transformed, ...qs]);
       setNewQuestionDialogOpen(false);
       setNewQuestionTitle("");
       setNewQuestionTopic("");
@@ -157,10 +171,15 @@ export function QAScreen() {
         }
       );
 
+      const transformedAnswer = {
+        ...result.answer,
+        id: result.answer._id,
+      };
+
       setQuestions((prev) =>
         prev.map((q) =>
           q.id === selectedQuestionId
-            ? { ...q, answers: [...q.answers, result.answer] }
+            ? { ...q, answers: [...q.answers, transformedAnswer] }
             : q
         )
       );

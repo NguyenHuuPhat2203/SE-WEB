@@ -44,11 +44,13 @@ export async function apiRequest<T = any>(
     throw new Error("Resource not found");
   }
 
-  if (!data.success) {
-    throw new Error(data.message || "API request failed");
+  // Handle error responses
+  if (!response.ok || (data.success === false)) {
+    throw new Error(data.message || data.error || "API request failed");
   }
 
-  return data.data;
+  // Return data.data if wrapped, otherwise return data directly
+  return data.data !== undefined ? data.data : data;
 }
 
 /**

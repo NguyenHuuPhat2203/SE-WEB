@@ -1,89 +1,67 @@
-// Hard-coded data in-memory
-let questions = [
-  {
-    id: 1,
-    title: "How to implement Binary Search Tree?",
-    content: "I am struggling with the implementation of BST insert method.",
-    author: "Nguyen Huu Phat",
-    time: "2 hours ago",
-    topic: "Data Structures",
-    tags: ["BST", "Trees"],
-    answers: [
-      {
-        id: 1,
-        author: "Tran Ngoc Bao Duy",
-        content: "Use recursion carefully. Base case first, then left/right subtree.",
-        time: "1 hour ago",
-        likes: 5,
-        isTutor: true
-      }
-    ]
-  }
-];
+const qaService = require("../services/qaService");
 
 module.exports = {
-  // GET /api/questions
-  list(req, res) {
-    res.json(questions);
+  // GET /api/getquestions
+  async list(req, res) {
+    try {
+      const questions = await qaService.list();
+      res.json(questions);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   },
 
   // GET /api/questions/:id
-  detail(req, res) {
-    const q = questions.find(q => q.id === Number(req.params.id));
-    if (!q) {
-      return res.status(404).json({ error: "Question not found" });
+  async detail(req, res) {
+    try {
+      const question = await qaService.getById(req.params.id);
+      res.json(question);
+    } catch (error) {
+      if (error.message === "NOT_FOUND") {
+        return res.status(404).json({ error: "Question not found" });
+      }
+      res.status(500).json({ error: error.message });
     }
-    res.json(q);
   },
 
-  // POST /api/questions
-  create(req, res) {
-    const { title, content, topic, author } = req.body;
-
-    if (!title || !content || !topic) {
-      return res.status(400).json({ error: "Missing fields" });
+  // POST /api/addquestion
+  async create(req, res) {
+    try {
+      const newQuestion = await qaService.create(req.body);
+      res.json({ message: "Question created", question: newQuestion });
+    } catch (error) {
+      if (error.message === "MISSING_FIELDS") {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      res.status(500).json({ error: error.message });
     }
-
-    const newQuestion = {
-      id: Date.now(),
-      title,
-      content,
-      topic,
-      author: author || "Anonymous",
-      time: "Just now",
-      tags: [],
-      answers: []
-    };
-
-    questions.unshift(newQuestion);   // Add to top like FE
-    res.json({ message: "Question created", question: newQuestion });
   },
 
   // POST /api/questions/:id/answers
-  createAnswer(req, res) {
+  async createAnswer(req, res) {
     const { content, author } = req.body;
 
     if (!content) {
       return res.status(400).json({ error: "Missing answer content" });
     }
 
-    const questionId = Number(req.params.id);
-    const q = questions.find(q => q.id === questionId);
+    try {
+      const answerData = {
+        author: author || "Anonymous",
+        content,
+        time: new Date().toISOString(),
+        likes: 0,
+      };
 
-    if (!q) {
-      return res.status(404).json({ error: "Question not found" });
+      const question = await qaService.addAnswer(req.params.id, answerData);
+      const addedAnswer = question.answers[question.answers.length - 1];
+
+      res.json({ message: "Answer posted", answer: addedAnswer });
+    } catch (error) {
+      if (error.message === "NOT_FOUND") {
+        return res.status(404).json({ error: "Question not found" });
+      }
+      res.status(500).json({ error: error.message });
     }
-
-    const newAnswer = {
-      id: Date.now(),
-      author: author || "Anonymous",
-      content,
-      time: "Just now",
-      likes: 0
-    };
-
-    q.answers.push(newAnswer);
-
-    res.json({ message: "Answer posted", answer: newAnswer });
-  }
+  },
 };

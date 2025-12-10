@@ -1,4 +1,4 @@
-const contestRepository = require('../repositories/contestRepository');
+const contestRepository = require("../repositories/contestRepositoryMongo");
 
 class ContestService {
   getAll() {
@@ -11,14 +11,14 @@ class ContestService {
 
   getById(id) {
     const contest = contestRepository.findById(id);
-    if (!contest) throw new Error('NOT_FOUND');
+    if (!contest) throw new Error("NOT_FOUND");
     return contest;
   }
 
   register(contestId) {
     const contest = contestRepository.register(contestId);
-    if (!contest) throw new Error('NOT_FOUND');
-    if (contest.status !== 'open') throw new Error('CONTEST_CLOSED');
+    if (!contest) throw new Error("NOT_FOUND");
+    if (contest.status !== "open") throw new Error("CONTEST_CLOSED");
     return contest;
   }
 }

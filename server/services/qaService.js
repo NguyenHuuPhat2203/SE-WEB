@@ -1,19 +1,24 @@
-const questionRepository = require('../repositories/questionRepository');
+const questionRepository = require("../repositories/questionRepositoryMongo");
 
 class QAService {
-  list() {
-    return questionRepository.findAll();
+  async list() {
+    return await questionRepository.getAll();
   }
 
-  getById(id) {
-    const q = questionRepository.findById(id);
-    if (!q) throw new Error('NOT_FOUND');
+  async getById(id) {
+    const q = await questionRepository.getById(id);
+    if (!q) throw new Error("NOT_FOUND");
     return q;
   }
 
-  create({ title, content, topic, author }) {
-    if (!title || !topic || !content) throw new Error('MISSING_FIELDS');
-    return questionRepository.create({ title, content, topic, author });
+  async create({ title, content, topic, author }) {
+    if (!title || !topic || !content) throw new Error("MISSING_FIELDS");
+    return await questionRepository.create({ title, content, topic, author });
+  }
+
+  async addAnswer(questionId, answerData) {
+    if (!answerData.content) throw new Error("MISSING_CONTENT");
+    return await questionRepository.addAnswer(questionId, answerData);
   }
 }
 
