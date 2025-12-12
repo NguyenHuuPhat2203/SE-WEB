@@ -210,7 +210,7 @@ const mockTutors: Tutor[] = [
 export function FindTutorScreen() {
   const navigate = useNavigate();
   const { language } = useLayoutContext();
-  const [bknetId, setBknetId] = useState("");
+  const [tutorName, setTutorName] = useState("");
   const [course, setCourse] = useState("");
   const [results, setResults] = useState(mockTutors);
   const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
@@ -227,7 +227,7 @@ export function FindTutorScreen() {
     manualSearch: language === "en" ? "Manual search" : "Tìm kiếm thủ công",
     autoSuggestion:
       language === "en" ? "Automatic suggestion (AI)" : "Gợi ý tự động (AI)",
-    bknetId: "BKnetID",
+    tutorName: language === "en" ? "Tutor Name" : "Tên giảng viên",
     optional: language === "en" ? "Optional" : "Tùy chọn",
     course: language === "en" ? "Course / Subject" : "Môn học",
     selectCourse: language === "en" ? "Select a course" : "Chọn môn học",
@@ -282,9 +282,9 @@ export function FindTutorScreen() {
       filtered = filtered.filter((t) =>
         t.specialization.some((spec) => selectedSpecializations.includes(spec))
       );
-    if (bknetId.trim())
+    if (tutorName.trim())
       filtered = filtered.filter((t) =>
-        t.name.toLowerCase().includes(bknetId.toLowerCase())
+        t.name.toLowerCase().includes(tutorName.toLowerCase())
       );
     if (course)
       filtered = filtered.filter((t) =>
@@ -298,7 +298,7 @@ export function FindTutorScreen() {
     selectedDepartments,
     minRating,
     selectedSpecializations,
-    bknetId,
+    tutorName,
     course,
   ]);
 
@@ -314,7 +314,7 @@ export function FindTutorScreen() {
     setSelectedDepartments([]);
     setMinRating(0);
     setSelectedSpecializations([]);
-    setBknetId("");
+    setTutorName("");
     setCourse("");
     setResults(mockTutors);
   };
@@ -345,15 +345,15 @@ export function FindTutorScreen() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="bknetId">
-                    {t.bknetId}{" "}
+                  <Label htmlFor="tutorName">
+                    {t.tutorName}{" "}
                     <span className="text-gray-400">({t.optional})</span>
                   </Label>
                   <Input
-                    id="bknetId"
-                    value={bknetId}
-                    onChange={(e) => setBknetId(e.target.value)}
-                    placeholder="tutor.hcmut"
+                    id="tutorName"
+                    value={tutorName}
+                    onChange={(e) => setTutorName(e.target.value)}
+                    placeholder={language === "en" ? "Enter tutor name..." : "Nhập tên giảng viên..."}
                   />
                 </div>
                 <div>

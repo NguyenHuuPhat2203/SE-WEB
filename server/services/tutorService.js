@@ -11,7 +11,7 @@ class TutorService {
     return t;
   }
 
-  suggestions(/*bknetId*/) {
+  suggestions(name) {
     return tutorRepository.findSuggestions();
   }
 

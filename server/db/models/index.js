@@ -6,6 +6,7 @@ const SessionModel = require('./SessionModel');
 const QuestionModel = require('./QuestionModel');
 const CourseModel = require('./CourseModel');
 const CourseRequestModel = require('./CourseRequestModel');
+const FeedbackModel = require("./FeedbackModel");
 
 module.exports = {
   UserModel,
@@ -15,4 +16,5 @@ module.exports = {
   QuestionModel,
   CourseModel,
   CourseRequestModel,
+  FeedbackModel,
 };

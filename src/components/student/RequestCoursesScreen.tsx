@@ -101,7 +101,10 @@ export function RequestCoursesScreen({}: RequestCoursesScreenProps) {
     try {
       const res = await fetch("http://localhost:3001/api/addcourse-request", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify({
           studentName: user.name,
           studentId: user.bknetId,

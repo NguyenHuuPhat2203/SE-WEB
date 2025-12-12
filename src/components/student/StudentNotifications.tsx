@@ -42,7 +42,7 @@ interface StudentNotificationsProps {
 export function StudentNotifications({
   allowCompose,
 }: StudentNotificationsProps) {
-  const { language, user } = useLayoutContext();
+  const { language } = useLayoutContext();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedNotification, setSelectedNotification] =
     useState<Notification | null>(null);
@@ -186,55 +186,75 @@ export function StudentNotifications({
         </Select>
       </div>
 
-      {/* Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* List */}
-        <div className="lg:col-span-1 space-y-2">
-          {filtered.map((n) => (
+      {/* Layout - Fixed height container */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)] min-h-[500px]">
+        {/* List - Scrollable */}
+        <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar border-r border-gray-100">
+          {filtered.length === 0 ? (
+             <div className="text-center text-gray-400 py-8">No notifications</div>
+          ) : (
+             filtered.map((n) => (
             <Card
               key={n._id}
               onClick={() => handleNotificationClick(n)}
-              className={`cursor-pointer transition-colors ${
+              className={`cursor-pointer transition-all duration-200 border shadow-sm ${
                 selectedNotification?._id === n._id
-                  ? "border-blue-600 bg-blue-50"
-                  : "hover:bg-gray-50"
+                  ? "border-blue-500 bg-blue-50/50 ring-1 ring-blue-200"
+                  : "hover:bg-gray-50 border-gray-200"
               }`}
             >
               <CardContent className="p-4 flex items-start gap-3">
                 {n.unread ? (
-                  <Mail className="h-5 w-5 text-blue-600 mt-1" />
+                  <Mail className="h-5 w-5 text-blue-600 mt-1 shrink-0" />
                 ) : (
-                  <MailOpen className="h-5 w-5 text-gray-400 mt-1" />
+                  <MailOpen className="h-5 w-5 text-gray-400 mt-1 shrink-0" />
                 )}
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium">{n.title}</h3>
-                  <p className="text-xs text-gray-500">{n.senderBknetId}</p>
-                  <p className="text-xs text-gray-400">{n.time}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className={`text-sm font-medium truncate ${n.unread ? 'text-gray-900' : 'text-gray-600'}`}>
+                    {n.title}
+                  </h3>
+                  <div className="flex justify-between items-center mt-1">
+                    <p className="text-xs text-gray-500 truncate max-w-[120px]">{n.senderBknetId}</p>
+                    <p className="text-xs text-gray-400 shrink-0">{new Date(n.time).toLocaleDateString()}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
+          )))}
         </div>
 
-        {/* Detail */}
-        <div className="lg:col-span-2">
+        {/* Detail - Fixed and Scrollable content */}
+        <div className="lg:col-span-2 h-full">
           {selectedNotification ? (
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-lg font-semibold mb-2">
-                  {selectedNotification.title}
-                </h2>
-                <p className="text-sm text-gray-600 mb-2">
-                  From: {selectedNotification.senderBknetId} •{" "}
-                  {selectedNotification.time}
-                </p>
-                <p className="text-gray-700">{selectedNotification.content}</p>
+            <Card className="h-full flex flex-col shadow-md border-gray-200">
+              <CardContent className="p-8 flex-1 overflow-y-auto">
+                <div className="flex items-center justify-between mb-6 border-b pb-4">
+                    <div>
+                        <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                        {selectedNotification.title}
+                        </h2>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span className="font-medium text-gray-700">{selectedNotification.senderBknetId}</span>
+                            <span>•</span>
+                            <span>{new Date(selectedNotification.time).toLocaleString()}</span>
+                            <span>•</span>
+                            <Badge variant="outline" className="capitalize">{selectedNotification.type}</Badge>
+                        </div>
+                    </div>
+                </div>
+                <div className="prose max-w-none text-gray-800 leading-relaxed whitespace-pre-wrap">
+                    {selectedNotification.content}
+                </div>
               </CardContent>
             </Card>
           ) : (
-            <Card className="h-full flex items-center justify-center">
-              <CardContent className="text-gray-500 text-sm">
-                Select a notification to view
+            <Card className="h-full flex items-center justify-center bg-gray-50/50 border-dashed">
+              <CardContent className="text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MailOpen className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900">Select a notification</h3>
+                <p className="text-gray-500 text-sm mt-1">Choose a message from the list to view details</p>
               </CardContent>
             </Card>
           )}

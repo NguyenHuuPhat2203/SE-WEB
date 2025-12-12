@@ -1,29 +1,3 @@
-// // server.js
-// const express = require('express');
-// const cors = require('cors');
-// const authController = require('./controllers/authController');
-// const userRepository = require('./repositories/userRepository');
-
-// const app = express();
-// const PORT = 3001;
-
-// app.use(cors());
-// app.use(express.json());
-
-// // Auth routes
-// app.post('/api/login', authController.login);
-// app.post('/api/register', authController.register);
-
-// // Debug: xem user (không trả password)
-// app.get('/api/users', (req, res) => {
-//   const users = userRepository.getAll().map(({ password, ...rest }) => rest);
-//   res.json(users);
-// });
-
-// app.listen(PORT, () => {
-//   console.log(`Backend running at http://localhost:${PORT}`);
-// });
-
 const express = require("express");
 const cors = require("cors");
 const config = require("./utils/config");
@@ -40,6 +14,8 @@ const qaController = require("./controllers/qaController");
 const userController = require("./controllers/userController");
 const notificationController = require("./controllers/notificationController");
 const courseRequestController = require("./controllers/courseRequestController");
+const feedbackController = require("./controllers/feedbackController");
+const reportController = require("./controllers/reportController");
 
 const app = express();
 const PORT = config.port;
@@ -159,6 +135,13 @@ app.delete(
   authorize("cod"),
   courseRequestController.deleteCourse
 );
+
+// ---- Feedback ---- (protected)
+app.post("/api/feedback", protect, feedbackController.create);
+app.get("/api/tutors/:tutorId/feedback", feedbackController.getByTutor);
+
+// ---- Reports ---- (protected)
+app.get("/api/reports/stats", protect, reportController.getStats);
 
 // ---- Course Requests ----
 app.get("/api/course-requests", protect, courseRequestController.listRequests);

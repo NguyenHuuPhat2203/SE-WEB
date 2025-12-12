@@ -7,7 +7,7 @@ import { Textarea } from "../ui/textarea";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { useLayoutContext } from "../../hooks/useLayoutContext";
 
 interface FeedbackScreenProps {}
@@ -22,8 +22,11 @@ export function FeedbackScreen({}: FeedbackScreenProps) {
 
   // 👇 state thông tin cá nhân
   const [fullName, setFullName] = useState("");
-  const [bknetId, setBknetId] = useState("");
+  const [studentId, setStudentId] = useState("");
   const [studentClass, setStudentClass] = useState("");
+
+  // 👇 state cho selection cụ thể
+  const [selectedEntityId, setSelectedEntityId] = useState("");
 
   const t = {
     title: language === "en" ? "Evaluation" : "Đánh giá",
@@ -34,12 +37,16 @@ export function FeedbackScreen({}: FeedbackScreenProps) {
         ? "Step 0: Your personal information"
         : "Bước 0: Thông tin cá nhân",
     fullName: language === "en" ? "Full name" : "Họ và tên",
-    bknetIdLabel: "BKnetID",
+    studentIdLabel: "Student ID",
     classLabel: language === "en" ? "Class / Cohort" : "Lớp / Khóa",
     missingInfo:
       language === "en"
-        ? "Please fill in your name and BKnetID before submitting."
-        : "Vui lòng nhập Họ tên và BKnetID trước khi gửi.",
+        ? "Please fill in your name and Student ID before submitting."
+        : "Vui lòng nhập Họ tên và MSSV (7 số) trước khi gửi.",
+    invalidStudentId:
+      language === "en"
+        ? "Student ID must be 7 digits."
+        : "MSSV phải bao gồm 7 chữ số.",
 
     step1:
       language === "en"
@@ -62,6 +69,7 @@ export function FeedbackScreen({}: FeedbackScreenProps) {
       language === "en"
         ? "Thank you for your feedback!"
         : "Cảm ơn phản hồi của bạn!",
+    selectSpecific: language === "en" ? "Select specific" : "Chọn cụ thể",
   };
 
   const tags = [
@@ -83,6 +91,22 @@ export function FeedbackScreen({}: FeedbackScreenProps) {
     },
   ];
 
+  // Mock data for dynamic selection
+  const mockMyTutors = [
+    { id: "1", name: "Dr. Nguyen Van A" },
+    { id: "2", name: "Ms. Le Thi B" },
+  ];
+  
+  const mockMySessions = [
+    { id: "101", title: "Data Structures - Week 5" },
+    { id: "102", title: "Algorithm Analysis - Final Review" },
+  ];
+
+  const mockMyCourses = [
+    { id: "CO3001", name: "Software Engineering" },
+    { id: "CO3005", name: "Principles of Programming Languages" },
+  ];
+
   const handleTagToggle = (tagId: string) => {
     setSelectedTags((prev) =>
       prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]
@@ -91,9 +115,17 @@ export function FeedbackScreen({}: FeedbackScreenProps) {
 
   const handleSubmit = () => {
     // ⚠️ kiểm tra thông tin cá nhân trước
-    if (!fullName.trim() || !bknetId.trim()) {
+    if (!fullName.trim() || !studentId.trim()) {
       toast.error(t.missingInfo);
       return;
+    }
+    if (!/^\d{7}$/.test(studentId)) {
+        toast.error(t.invalidStudentId);
+        return;
+    }
+    if (!selectedEntityId) {
+        toast.error(language === "en" ? "Please select a specific item to evaluate." : "Vui lòng chọn đối tượng cụ thể để đánh giá.");
+        return;
     }
 
     toast.success(t.success);
@@ -132,12 +164,16 @@ export function FeedbackScreen({}: FeedbackScreenProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bknetId">{t.bknetIdLabel} *</Label>
+                <Label htmlFor="studentId">{t.studentIdLabel} *</Label>
                 <Input
-                  id="bknetId"
-                  value={bknetId}
-                  onChange={(e) => setBknetId(e.target.value)}
-                  placeholder="2312xxxx / your BKnetID"
+                  id="studentId"
+                  value={studentId}
+                  onChange={(e) => {
+                      // Only allow digits and max 7 chars
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 7);
+                      setStudentId(val);
+                  }}
+                  placeholder="xxxxxxx (7 digits)"
                 />
               </div>
             </div>
@@ -163,10 +199,13 @@ export function FeedbackScreen({}: FeedbackScreenProps) {
           <CardHeader>
             <CardTitle>{t.step1}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <RadioGroup
               value={evaluationType}
-              onValueChange={setEvaluationType}
+              onValueChange={(val) => {
+                  setEvaluationType(val);
+                  setSelectedEntityId(""); // Reset specific selection on type change
+              }}
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card
@@ -219,6 +258,33 @@ export function FeedbackScreen({}: FeedbackScreenProps) {
                 </Card>
               </div>
             </RadioGroup>
+            
+            {/* Dynamic Selection Dropdown */}
+            <div className="pt-4 border-t">
+                <Label className="mb-2 block">{t.selectSpecific} {
+                    evaluationType === "tutor" ? t.tutor :
+                    evaluationType === "session" ? t.session : t.course
+                }</Label>
+                
+                {/* Manual Select Implementation using standard HTML select for simplicity or Shadcn Select */}
+                 {/* Reusing Shadcn Select imports if available at top, else standard select */}
+                 <select 
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={selectedEntityId}
+                    onChange={(e) => setSelectedEntityId(e.target.value)}
+                 >
+                     <option value="" disabled>-- Select --</option>
+                     {evaluationType === "tutor" && mockMyTutors.map(t => (
+                         <option key={t.id} value={t.id}>{t.name}</option>
+                     ))}
+                     {evaluationType === "session" && mockMySessions.map(s => (
+                         <option key={s.id} value={s.id}>{s.title}</option>
+                     ))}
+                     {evaluationType === "course" && mockMyCourses.map(c => (
+                         <option key={c.id} value={c.id}>{c.name}</option>
+                     ))}
+                 </select>
+            </div>
           </CardContent>
         </Card>
 

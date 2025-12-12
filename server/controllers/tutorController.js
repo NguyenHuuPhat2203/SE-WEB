@@ -18,7 +18,7 @@ exports.detail = (req, res) => {
 };
 
 exports.suggestions = (req, res) => {
-  const tutors = tutorService.suggestions(req.query.bknetId);
+  const tutors = tutorService.suggestions(req.query.name);
   res.json({ success: true, data: tutors });
 };
 
